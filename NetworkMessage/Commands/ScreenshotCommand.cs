@@ -1,5 +1,6 @@
 ﻿using NetworkMessage.CommandsResaults;
 using System.Drawing;
+using System.Runtime.InteropServices;
 
 namespace NetworkMessage.Commands
 {
@@ -7,7 +8,7 @@ namespace NetworkMessage.Commands
     {
         public override Task<INetworkCommandResult> Do(params object[] objects)
         {
-            if (Environment.OSVersion.Platform == PlatformID.Win32NT)
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
                 int width = System.Windows.Forms.Screen.AllScreens.Sum(s => s.Bounds.Width);
                 int height = System.Windows.Forms.Screen.AllScreens.Max(s => s.Bounds.Height);
