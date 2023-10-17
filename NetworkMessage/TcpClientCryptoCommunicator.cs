@@ -202,6 +202,6 @@ namespace NetworkMessage
             this.externalPublicKey = externalPublicKey;
         }
 
-        public abstract void Handshake();
+        public abstract void Handshake(CancellationToken token);
     }
 }

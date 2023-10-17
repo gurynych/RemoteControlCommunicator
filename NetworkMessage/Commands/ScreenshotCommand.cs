@@ -8,7 +8,8 @@ namespace NetworkMessage.Commands
     {
         public override Task<INetworkCommandResult> Do(params object[] objects)
         {
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            throw new NotImplementedException();
+            /*if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
                 int width = System.Windows.Forms.Screen.AllScreens.Sum(s => s.Bounds.Width);
                 int height = System.Windows.Forms.Screen.AllScreens.Max(s => s.Bounds.Height);
@@ -22,7 +23,7 @@ namespace NetworkMessage.Commands
                 return Task.FromResult(screenshot);
             }
 
-            return default;
+            return default;*/
         }
     }
 }
