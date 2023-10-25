@@ -3,6 +3,7 @@ using NetworkMessage.Cryptography;
 using NetworkMessage.Cryptography.KeyStore;
 using Newtonsoft.Json.Linq;
 using System.Net.Sockets;
+using System.Security.Cryptography.X509Certificates;
 using System.Text;
 
 namespace NetworkMessage
@@ -63,18 +64,32 @@ namespace NetworkMessage
             try
             {
                 NetworkStream stream = client.GetStream();
-                byte[] data = publicKeyResult.PublicKey;
-                byte[] size = BitConverter.GetBytes(data.Length);
-                byte[] sizeWithEncodedData = new byte[size.Length + data.Length];
-                Buffer.BlockCopy(size, 0, sizeWithEncodedData, 0, size.Length);
-                Buffer.BlockCopy(data, 0, sizeWithEncodedData, size.Length, data.Length);
-                stream.WriteAsync(sizeWithEncodedData, 0, sizeWithEncodedData.Length);
+                byte[] publicKey = publicKeyResult.PublicKey;
+                byte[] sizeWithPublickey = PublicKeyToNetworkMessageFormat(publicKey);                
+                stream.Write(sizeWithPublickey);
             }
             catch (Exception)
             {
                 throw;
             }
         }
+
+        public virtual async Task SendPublicKeyAsync(PublicKeyResult publicKeyResult, CancellationToken token = default)
+        {
+            if (!client.Connected) throw new SocketException((int)SocketError.NotConnected);
+
+            try
+            {
+                NetworkStream stream = client.GetStream();
+                byte[] publicKey = publicKeyResult.PublicKey;
+                byte[] sizeWithPublickey = PublicKeyToNetworkMessageFormat(publicKey);
+                await stream.WriteAsync(sizeWithPublickey, token);
+            }
+            catch (Exception)
+            {
+                throw;
+            }
+        }        
 
         public virtual async Task SendAsync(INetworkObject networkObject, CancellationToken token = default)
         {
@@ -100,11 +115,16 @@ namespace NetworkMessage
             try
             {
                 NetworkStream stream = client.GetStream();
-                byte[] data = new byte[stream.Socket.Available];
-                int readedBytes = stream.Read(data);
-                if (readedBytes == 0) return default;
+                List<byte> data = new List<byte>();
+                byte[] buffer = new byte[512];                
+                int bytesAvailable = stream.Socket.Available;
+                do
+                {                    
+                    stream.Read(buffer, data.Count, buffer.Length);
+                    data.AddRange(buffer);
+                } while (stream.Socket.Available > 0);
 
-                string json = BytesToJson(data);
+                string json = BytesToJson(data.ToArray());
                 return JsonToNetworkObject(json);
             }
             catch { throw; }
@@ -116,11 +136,24 @@ namespace NetworkMessage
             try
             {
                 NetworkStream stream = client.GetStream();
-                byte[] data = new byte[stream.Socket.Available];
-                int readedBytes = await stream.ReadAsync(data, token);
-                if (readedBytes == 0) return default;
+                List<byte> data = new List<byte>();
+                byte[] buffer = new byte[512];
+                //byte[] buffer = new byte[1024];
+                //int readedBytes = await stream.ReadAsync(buffer, token);
+                //buffer = buffer.Take(readedBytes).ToArray();
+                int bytesAvailable = stream.Socket.Available;
+                do
+                {                    
+                    //int count = Math.Min(bytesAvailable, buffer.Length);
+                    //bytesAvailable -= await stream.ReadAsync(buffer, data.Count, count, token);
+                    await stream.ReadAsync(buffer, data.Count, buffer.Length, token);
+                    data.AddRange(buffer);
+                    //await stream.ReadAsync(buffer, token);
+                } while (stream.Socket.Available > 0);
+                //if (readedBytes == 0) return default;
 
-                string json = BytesToJson(data);
+                //string json = BytesToJson(buffer);
+                string json = BytesToJson(data.ToArray());
                 return JsonToNetworkObject(json);
             }
             catch { throw; }
@@ -132,24 +165,79 @@ namespace NetworkMessage
             try
             {
                 NetworkStream stream = client.GetStream();
-                byte[] data = new byte[stream.Socket.Available];
-                int readedBytes = stream.Read(data);
-                if (readedBytes == 0) return default;
+                List<byte> data = new List<byte>();
+                byte[] buffer = new byte[512];                
+                int bytesAvailable = stream.Socket.Available;
+                do
+                {
+                    stream.Read(buffer, data.Count, buffer.Length);
+                    data.AddRange(buffer);                    
+                } while (stream.Socket.Available > 0);
 
-                Memory<byte> bytes = new Memory<byte>(data);
-                int size = BitConverter.ToInt32(bytes.Slice(0, sizeof(int)).Span);
-                if (size <= 0) return default;                
-                PublicKeyResult publicKeyResult = new PublicKeyResult(bytes.Slice(sizeof(int)).ToArray());
+                int size = BitConverter.ToInt32(data.Take(sizeof(int)).ToArray());
+                if (size <= 0) return default;
+                byte[] publicKey = data.Skip(sizeof(int)).Take(size).ToArray();
+                PublicKeyResult publicKeyResult = new PublicKeyResult(publicKey);
+                return publicKeyResult;
+            }
+            catch { throw; }
+        }        
+
+        public virtual async Task<PublicKeyResult> ReceivePublicKeyAsync(CancellationToken token = default)
+        {
+            if (!client.Connected) return default;
+            try
+            {
+                NetworkStream stream = client.GetStream();
+                List<byte> data = new List<byte>();
+                byte[] buffer = new byte[512];
+                int bytesAvailable = stream.Socket.Available;
+                do
+                {
+                    await stream.ReadAsync(buffer, data.Count, buffer.Length, token);
+                    data.AddRange(buffer);
+                } while (stream.Socket.Available > 0);
+
+                int size = BitConverter.ToInt32(data.Take(sizeof(int)).ToArray());
+                if (size <= 0) return default;
+                byte[] publicKey = data.Skip(sizeof(int)).Take(size).ToArray();
+                PublicKeyResult publicKeyResult = new PublicKeyResult(publicKey);
                 return publicKeyResult;
             }
             catch { throw; }
         }
 
+        public virtual void Stop()
+        {
+            client.Close();
+        }
+
+        /// <summary>
+        /// Установить внешний окрытый ключ
+        /// </summary>
+        /// <param name="externalPublicKey">Внешний ключ</param>
+        /// <exception cref="ArgumentNullException"></exception>
+        public virtual void SetExternalPublicKey(byte[] externalPublicKey)
+        {
+            this.externalPublicKey = externalPublicKey ?? throw new ArgumentNullException(nameof(externalPublicKey));
+        }
+
+        public abstract Task Handshake(CancellationToken token);
+
+        private byte[] PublicKeyToNetworkMessageFormat(byte[] publicKey)
+        {
+            byte[] size = BitConverter.GetBytes(publicKey.Length);
+            byte[] sizeWithPublickey = new byte[size.Length + publicKey.Length];
+            Buffer.BlockCopy(size, 0, sizeWithPublickey, 0, size.Length);
+            Buffer.BlockCopy(publicKey, 0, sizeWithPublickey, size.Length, publicKey.Length);
+            return sizeWithPublickey;
+        }
+
         private byte[] ToNetworkMessageFormat(INetworkObject networkObject)
         {
             byte[] data = networkObject.ToByteArray(); //конвертирум данные в массив байт
-            byte[] size = BitConverter.GetBytes(data.Length); //получаем размер данных
             data = cryptographer.Encrypt(data, externalPublicKey); //шифруем данные
+            byte[] size = BitConverter.GetBytes(data.Length); //получаем размер данных
             byte[] sizeWithEncData = new byte[size.Length + data.Length];
 
             Buffer.BlockCopy(size, 0, sizeWithEncData, 0, size.Length);
@@ -158,14 +246,14 @@ namespace NetworkMessage
         }
 
         private string BytesToJson(byte[] data)
-        {
-            Memory<byte> bytes = new Memory<byte>(data);
-            if (bytes.IsEmpty) throw new ArgumentNullException(nameof(bytes));
+        {            
+            if (data == default) throw new ArgumentNullException(nameof(data));
 
-            int size = BitConverter.ToInt32(bytes.Slice(0, sizeof(int)).Span);
+            int size = BitConverter.ToInt32(data.Take(sizeof(int)).ToArray());           
             if (size <= 0) return default;
-            bytes = cryptographer.Decrypt(bytes.Slice(sizeof(int)).ToArray(), ownPrivateKey = keyStore.PrivateKey);
-            return Encoding.UTF8.GetString(bytes.Span);
+            data = data.Skip(sizeof(int)).Take(size).ToArray();
+            data = cryptographer.Decrypt(data, ownPrivateKey = keyStore.PrivateKey);
+            return Encoding.UTF8.GetString(data);
         }
 
         private INetworkObject JsonToNetworkObject(string json)
@@ -183,25 +271,6 @@ namespace NetworkMessage
             }
 
             return default;
-        }
-
-        public virtual void Stop()
-        {
-            client.Close();
-        }
-
-
-        /// <summary>
-        /// Установить внешний окрытый ключ
-        /// </summary>
-        /// <param name="externalPublicKey">Внешний ключ</param>
-        /// <exception cref="ArgumentNullException"></exception>
-        public virtual void SetExternalPublicKey(byte[] externalPublicKey)
-        {
-            if (externalPublicKey == null) throw new ArgumentNullException(nameof(externalPublicKey));
-            this.externalPublicKey = externalPublicKey;
-        }
-
-        public abstract void Handshake(CancellationToken token);
+        }        
     }
 }
