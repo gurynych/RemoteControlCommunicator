@@ -11,7 +11,8 @@ namespace NetworkMessage
     public abstract class TcpClientCryptoCommunicator : INetworkCommunicator
     {
         protected readonly TcpClient client;
-        protected readonly IAsymmetricCryptographer cryptographer;
+        protected readonly IAsymmetricCryptographer asymmetricCryptographer;
+        protected readonly ISymmetricCryptographer symmetricCryptographer;
         protected readonly AsymmetricKeyStoreBase keyStore;
 
         /// <summary>
@@ -23,16 +24,17 @@ namespace NetworkMessage
         /// </summary>
         protected byte[] ownPrivateKey;
 
-        /// <param name="cryptographer">Класс, предоставляющий методы ассиметричного шифрования</param>
+        /// <param name="asymmetricCryptographer">Класс, предоставляющий методы ассиметричного шифрования</param>
         /// <exception cref="ArgumentNullException"></exception>
-        public TcpClientCryptoCommunicator(TcpClient client, IAsymmetricCryptographer cryptographer,
+        public TcpClientCryptoCommunicator(TcpClient client, IAsymmetricCryptographer asymmetricCryptographer,
+            ISymmetricCryptographer symmetricCryptographer,
             AsymmetricKeyStoreBase keyStore)
         {
             if (client == null) throw new ArgumentNullException(nameof(client));
             this.client = client;
 
-            if (cryptographer == null) throw new ArgumentNullException(nameof(cryptographer));
-            this.cryptographer = cryptographer;
+            if (asymmetricCryptographer == null) throw new ArgumentNullException(nameof(asymmetricCryptographer));
+            this.asymmetricCryptographer = asymmetricCryptographer;
 
             if (keyStore == null) throw new ArgumentNullException(nameof(keyStore));
             this.keyStore = keyStore;
@@ -236,7 +238,7 @@ namespace NetworkMessage
         private byte[] ToNetworkMessageFormat(INetworkObject networkObject)
         {
             byte[] data = networkObject.ToByteArray(); //конвертирум данные в массив байт
-            data = cryptographer.Encrypt(data, externalPublicKey); //шифруем данные
+            data = asymmetricCryptographer.Encrypt(data, externalPublicKey); //шифруем данные
             byte[] size = BitConverter.GetBytes(data.Length); //получаем размер данных
             byte[] sizeWithEncData = new byte[size.Length + data.Length];
 
@@ -252,7 +254,7 @@ namespace NetworkMessage
             int size = BitConverter.ToInt32(data.Take(sizeof(int)).ToArray());           
             if (size <= 0) return default;
             data = data.Skip(sizeof(int)).Take(size).ToArray();
-            data = cryptographer.Decrypt(data, ownPrivateKey = keyStore.PrivateKey);
+            data = asymmetricCryptographer.Decrypt(data, ownPrivateKey = keyStore.PrivateKey);
             return Encoding.UTF8.GetString(data);
         }
 

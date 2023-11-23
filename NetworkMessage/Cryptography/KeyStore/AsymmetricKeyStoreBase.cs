@@ -8,12 +8,12 @@ namespace NetworkMessage.Cryptography.KeyStore
         protected readonly IAsymmetricCryptographer cryptographer;
         public byte[] PrivateKey => SetPrivateKey();
 
-        /// <param name="cryptographer">Класс, предоставляющий методы для работы с асимметричными алгоритмами шифрования</param>
+        /// <param name="asymmetricCryptographer">Класс, предоставляющий методы для работы с асимметричными алгоритмами шифрования</param>
         /// <exception cref="ArgumentNullException"></exception>
-        public AsymmetricKeyStoreBase(IAsymmetricCryptographer cryptographer)
+        public AsymmetricKeyStoreBase(IAsymmetricCryptographer asymmetricCryptographer)
         {
-            if (cryptographer == null) throw new ArgumentNullException(nameof(cryptographer));
-            this.cryptographer = cryptographer;
+            if (asymmetricCryptographer == null) throw new ArgumentNullException(nameof(asymmetricCryptographer));
+            this.cryptographer = asymmetricCryptographer;
         }
 
         protected abstract byte[] SetPrivateKey();

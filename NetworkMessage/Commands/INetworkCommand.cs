@@ -4,6 +4,6 @@ namespace NetworkMessage.Commands
 {
     public interface INetworkCommand : INetworkObject
     {
-        Task<INetworkCommandResult> Do(params object[] objects);
+        Task<INetworkCommandResult> Do(CancellationToken token = default, params object[] objects);
     }
 }

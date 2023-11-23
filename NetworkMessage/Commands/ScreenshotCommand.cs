@@ -6,13 +6,13 @@ namespace NetworkMessage.Commands
 {
     public class ScreenshotCommand : NetworkCommandBase
     {
-        public override Task<INetworkCommandResult> Do(params object[] objects)
-        {
-            throw new NotImplementedException();
-            /*if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+        public override Task<INetworkCommandResult> Do(CancellationToken token = default,params object[] objects)
+        { 
+            //throw new NotImplementedException();
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
-                int width = System.Windows.Forms.Screen.AllScreens.Sum(s => s.Bounds.Width);
-                int height = System.Windows.Forms.Screen.AllScreens.Max(s => s.Bounds.Height);
+                int width = Screen.AllScreens.Sum(s => s.Bounds.Width);
+                int height = Screen.AllScreens.Max(s => s.Bounds.Height);
                 using Bitmap bitmap = new Bitmap(width, height);
                 using (Graphics g = Graphics.FromImage(bitmap))
                 {
@@ -23,7 +23,7 @@ namespace NetworkMessage.Commands
                 return Task.FromResult(screenshot);
             }
 
-            return default;*/
+            return default;
         }
     }
 }

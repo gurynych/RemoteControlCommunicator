@@ -8,7 +8,7 @@ namespace NetworkMessage.Commands
     {
         public Type NetworkObjectType => GetType();
 
-        public abstract Task<INetworkCommandResult> Do(params object[] objects);
+        public abstract Task<INetworkCommandResult> Do(CancellationToken token = default, params object[] objects);
 
         public string ToBase64()
         {

@@ -1,6 +1,12 @@
-﻿namespace NetworkMessage.Cryptography
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace NetworkMessage.Cryptography
 {
-    public interface IAsymmetricCryptographer : ICryptographer
+    public interface ISymmetricCryptographer : ICryptographer
     {
         /// <summary>
         /// Зашифровать данные
@@ -8,7 +14,7 @@
         /// <param name="data">Данные для зашифровки</param>
         /// <param name="publicKey">Ключ, при помощи которого будут зашифрованы данные</param>
         /// <returns>Зашифрованнные данные</returns>
-        //byte[] Encrypt(byte[] data, byte[] publicKey);
+        //byte[] ICryptographer.Encrypt(byte[] data, byte[] publicKey);
 
         /// <summary>
         /// Расшифровать данные
@@ -18,18 +24,6 @@
         /// <returns>Расшифрованные данные</returns>
         //byte[] Decrypt(byte[] encryptedData, byte[] privateKey);
 
-        /// <summary>
-        /// Сгенерировать закрытый ключ
-        /// </summary>
-        /// <param name="length">Длина генерируемого ключа</param>
-        /// <returns></returns>
-        byte[] GeneratePrivateKey();
-
-        /// <summary>
-        /// Сгенерировать открытый ключ
-        /// </summary>
-        /// <param name="length">Длина генерируемого ключа</param>
-        /// <returns></returns>
-        byte[] GeneratePublicKey(byte[] privateKey);        
+        byte[] GenerateKey();
     }
 }
