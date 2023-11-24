@@ -4,7 +4,7 @@ namespace NetworkMessage
 {
     public interface INetworkCommunicator
     {
-        public void Send(INetworkObject networkObject);
+        public void Send(INetworkMessage networkMessage);
 
         public void SendPublicKey(PublicKeyResult publicKeyResult);
 
@@ -16,9 +16,7 @@ namespace NetworkMessage
 
         public Task<PublicKeyResult> ReceivePublicKeyAsync(CancellationToken token = default);
 
-
-
-        Task SendAsync(INetworkObject networkObject, CancellationToken token = default);
+        Task SendAsync(INetworkMessage networkMessage, CancellationToken token = default);
 
         /// <summary>
         /// Получить сообщение

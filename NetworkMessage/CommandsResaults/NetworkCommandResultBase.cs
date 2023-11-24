@@ -1,7 +1,4 @@
-﻿using Newtonsoft.Json;
-using System.Text;
-
-namespace NetworkMessage.CommandsResaults
+﻿namespace NetworkMessage.CommandsResaults
 {
     public abstract class NetworkCommandResultBase : INetworkCommandResult
     {
@@ -12,9 +9,14 @@ namespace NetworkMessage.CommandsResaults
             return Convert.ToBase64String(ToByteArray());
         }
 
+        public override string ToString()
+        {
+            return Newtonsoft.Json.JsonConvert.SerializeObject(this);
+        }
+
         public virtual byte[] ToByteArray()
         {
-            return Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(this));            
+            return System.Text.Encoding.UTF8.GetBytes(ToString());
         }
     }
 }

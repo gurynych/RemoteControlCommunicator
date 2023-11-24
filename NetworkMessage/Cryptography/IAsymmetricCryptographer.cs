@@ -1,6 +1,9 @@
 ﻿namespace NetworkMessage.Cryptography
 {
-    public interface IAsymmetricCryptographer : ICryptographer
+    /// <summary>
+    /// Предоставляет методы для реализации асимметричного шифрования
+    /// </summary>
+    public interface IAsymmetricCryptographer
     {
         /// <summary>
         /// Зашифровать данные
@@ -8,7 +11,7 @@
         /// <param name="data">Данные для зашифровки</param>
         /// <param name="publicKey">Ключ, при помощи которого будут зашифрованы данные</param>
         /// <returns>Зашифрованнные данные</returns>
-        //byte[] Encrypt(byte[] data, byte[] publicKey);
+        byte[] Encrypt(byte[] data, byte[] publicKey);
 
         /// <summary>
         /// Расшифровать данные
@@ -16,7 +19,7 @@
         /// <param name="encryptedData">Зашифрованные данные</param>
         /// <param name="privateKey">Ключ, при помощи которого будут расшифрованы данные</param>
         /// <returns>Расшифрованные данные</returns>
-        //byte[] Decrypt(byte[] encryptedData, byte[] privateKey);
+        byte[] Decrypt(byte[] encryptedData, byte[] privateKey);
 
         /// <summary>
         /// Сгенерировать закрытый ключ

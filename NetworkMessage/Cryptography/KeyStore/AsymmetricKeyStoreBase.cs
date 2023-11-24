@@ -12,8 +12,7 @@ namespace NetworkMessage.Cryptography.KeyStore
         /// <exception cref="ArgumentNullException"></exception>
         public AsymmetricKeyStoreBase(IAsymmetricCryptographer asymmetricCryptographer)
         {
-            if (asymmetricCryptographer == null) throw new ArgumentNullException(nameof(asymmetricCryptographer));
-            this.cryptographer = asymmetricCryptographer;
+            cryptographer = asymmetricCryptographer ?? throw new ArgumentNullException(nameof(asymmetricCryptographer));
         }
 
         protected abstract byte[] SetPrivateKey();

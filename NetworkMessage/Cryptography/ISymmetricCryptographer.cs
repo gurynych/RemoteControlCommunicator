@@ -6,24 +6,31 @@ using System.Threading.Tasks;
 
 namespace NetworkMessage.Cryptography
 {
-    public interface ISymmetricCryptographer : ICryptographer
+    /// <summary>
+    /// Предоставляет методы для реализации симметричного шифрования
+    /// </summary>
+    public interface ISymmetricCryptographer
     {
         /// <summary>
         /// Зашифровать данные
         /// </summary>
         /// <param name="data">Данные для зашифровки</param>
-        /// <param name="publicKey">Ключ, при помощи которого будут зашифрованы данные</param>
+        /// <param name="key">Ключ, при помощи которого будут зашифрованы данные</param>
+        /// <param name="IV">Соль, обеспечивающая дополнительную безопасность</param>
         /// <returns>Зашифрованнные данные</returns>
-        //byte[] ICryptographer.Encrypt(byte[] data, byte[] publicKey);
+        byte[] Encrypt(byte[] data, byte[] key, byte[] IV);
 
         /// <summary>
         /// Расшифровать данные
         /// </summary>
         /// <param name="encryptedData">Зашифрованные данные</param>
-        /// <param name="privateKey">Ключ, при помощи которого будут расшифрованы данные</param>
+        /// <param name="key">Ключ, при помощи которого будут расшифрованы данные</param>
+        /// <param name="IV">Соль, использовавшиеся при шифровании</param>
         /// <returns>Расшифрованные данные</returns>
-        //byte[] Decrypt(byte[] encryptedData, byte[] privateKey);
+        byte[] Decrypt(byte[] encryptedData, byte[] key, byte[] IV);
 
         byte[] GenerateKey();
+
+        byte[] GenerateIV();
     }
 }

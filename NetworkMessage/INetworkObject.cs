@@ -9,5 +9,7 @@ namespace NetworkMessage
         byte[] ToByteArray();
 
         string ToBase64();
+
+        string ToString();
     }
 }

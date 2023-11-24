@@ -1,24 +1,56 @@
-﻿using System;
-using System.Security.Cryptography;
+﻿using System.Security.Cryptography;
 
 namespace NetworkMessage.Cryptography
 {
+    /// <summary>
+    /// Предоставляет реализацию синхронной криптографии, используя алгоритм AES
+    /// </summary>
     public class AESCryptographer : ISymmetricCryptographer
     {
-        public byte[] Decrypt(byte[] encryptedData, byte[] key)
+        private static readonly Aes aes;
+        static AESCryptographer()
         {
-            throw new NotImplementedException();
+            aes = Aes.Create();
+            aes.KeySize = 128;
         }
 
-        public byte[] Encrypt(byte[] data, byte[] key)
+        public byte[] Encrypt(byte[] data, byte[] key, byte[] IV)
         {
-            throw new NotImplementedException();
+            try
+            {
+                string strData = System.Text.Encoding.UTF8.GetString(data);
+                ICryptoTransform encryptor = aes.CreateEncryptor(key, IV);
+                using MemoryStream ms = new MemoryStream();
+                using CryptoStream cs = new CryptoStream(ms, encryptor, CryptoStreamMode.Write);
+                using StreamWriter writer = new StreamWriter(cs);
+                writer.Write(strData);
+                return ms.ToArray();
+            }
+            catch { throw; }
+        }
+
+        public byte[] Decrypt(byte[] encryptedData, byte[] key, byte[] IV)
+        {
+            try
+            {                
+                ICryptoTransform encryptor = aes.CreateEncryptor(key, IV);
+                using MemoryStream ms = new MemoryStream();
+                using CryptoStream cs = new CryptoStream(ms, encryptor, CryptoStreamMode.Read);
+                using StreamReader reader = new StreamReader(cs);
+                return  System.Text.Encoding.UTF8.GetBytes(reader.ReadToEnd());
+            }
+            catch { throw; }
+        }        
+
+        public byte[] GenerateIV()
+        {
+            aes.GenerateIV();
+            return aes.IV;
         }
 
         public byte[] GenerateKey()
         {
-            Aes aes = Aes.Create();
-            aes.Key = GenerateKey();
+            aes.GenerateKey();
             return aes.Key;
         }
     }

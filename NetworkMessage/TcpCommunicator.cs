@@ -1,15 +1,16 @@
 ﻿using NetworkMessage.CommandsResaults;
 using NetworkMessage.Cryptography;
 using NetworkMessage.Cryptography.KeyStore;
+using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System.Net.Sockets;
-using System.Security.Cryptography.X509Certificates;
 using System.Text;
 
 namespace NetworkMessage
 {
-    public abstract class TcpClientCryptoCommunicator : INetworkCommunicator
+    public abstract class TcpCommunicator : INetworkCommunicator
     {
+        private const int bytesForRead = 512;
         protected readonly TcpClient client;
         protected readonly IAsymmetricCryptographer asymmetricCryptographer;
         protected readonly ISymmetricCryptographer symmetricCryptographer;
@@ -24,24 +25,20 @@ namespace NetworkMessage
         /// </summary>
         protected byte[] ownPrivateKey;
 
-        /// <param name="asymmetricCryptographer">Класс, предоставляющий методы ассиметричного шифрования</param>
         /// <exception cref="ArgumentNullException"></exception>
-        public TcpClientCryptoCommunicator(TcpClient client, IAsymmetricCryptographer asymmetricCryptographer,
+        public TcpCommunicator(TcpClient client, IAsymmetricCryptographer asymmetricCryptographer,
             ISymmetricCryptographer symmetricCryptographer,
             AsymmetricKeyStoreBase keyStore)
         {
-            if (client == null) throw new ArgumentNullException(nameof(client));
-            this.client = client;
-
-            if (asymmetricCryptographer == null) throw new ArgumentNullException(nameof(asymmetricCryptographer));
-            this.asymmetricCryptographer = asymmetricCryptographer;
-
-            if (keyStore == null) throw new ArgumentNullException(nameof(keyStore));
-            this.keyStore = keyStore;
+            this.client = client ?? throw new ArgumentNullException(nameof(client));
+            this.asymmetricCryptographer = asymmetricCryptographer ?? throw new ArgumentNullException(nameof(asymmetricCryptographer));
+            this.symmetricCryptographer = symmetricCryptographer ?? throw new ArgumentNullException(nameof(symmetricCryptographer));
+            this.symmetricCryptographer = symmetricCryptographer ?? throw new ArgumentNullException(nameof(symmetricCryptographer));
+            this.keyStore = keyStore ?? throw new ArgumentNullException(nameof(keyStore));
             ownPrivateKey = keyStore.PrivateKey;
         }
 
-        public virtual void Send(INetworkObject networkObject)
+        public virtual void Send(INetworkMessage networkMessage)
         {
             if (!client.Connected) throw new SocketException((int)SocketError.NotConnected);
             if (externalPublicKey == default)
@@ -49,9 +46,8 @@ namespace NetworkMessage
 
             try
             {
-                NetworkStream stream = client.GetStream();
-                byte[] sizeWithEncodedData = ToNetworkMessageFormat(networkObject);
-                stream.Write(sizeWithEncodedData);
+                NetworkStream stream = client.GetStream();                
+                stream.Write(networkMessage.ToByteArray());
             }
             catch (Exception)
             {
@@ -93,7 +89,7 @@ namespace NetworkMessage
             }
         }        
 
-        public virtual async Task SendAsync(INetworkObject networkObject, CancellationToken token = default)
+        public virtual async Task SendAsync(INetworkMessage networkMessage, CancellationToken token = default)
         {
             if (!client.Connected) throw new SocketException((int)SocketError.NotConnected);
             if (externalPublicKey == default)
@@ -102,8 +98,7 @@ namespace NetworkMessage
             try
             {
                 NetworkStream stream = client.GetStream();
-                byte[] sizeWithEncData = ToNetworkMessageFormat(networkObject);
-                await stream.WriteAsync(sizeWithEncData, token);
+                await stream.WriteAsync(networkMessage.ToByteArray(), token);
             }
             catch (Exception)
             {
@@ -118,16 +113,17 @@ namespace NetworkMessage
             {
                 NetworkStream stream = client.GetStream();
                 List<byte> data = new List<byte>();
-                byte[] buffer = new byte[512];                
-                int bytesAvailable = stream.Socket.Available;
+                byte[] buffer = new byte[bytesForRead];                
                 do
-                {                    
+                {
                     stream.Read(buffer, data.Count, buffer.Length);
                     data.AddRange(buffer);
                 } while (stream.Socket.Available > 0);
 
-                string json = BytesToJson(data.ToArray());
-                return JsonToNetworkObject(json);
+                INetworkMessage networkMessage = ReceivedBytesToNetworkMessage(data.ToArray());
+                if (networkMessage == null) return default;              
+
+                return GetObjectFromMessage(networkMessage);
             }
             catch { throw; }
         }
@@ -139,24 +135,19 @@ namespace NetworkMessage
             {
                 NetworkStream stream = client.GetStream();
                 List<byte> data = new List<byte>();
-                byte[] buffer = new byte[512];
-                //byte[] buffer = new byte[1024];
-                //int readedBytes = await stream.ReadAsync(buffer, token);
-                //buffer = buffer.Take(readedBytes).ToArray();
+                byte[] buffer = new byte[bytesForRead];
                 int bytesAvailable = stream.Socket.Available;
                 do
-                {                    
-                    //int count = Math.Min(bytesAvailable, buffer.Length);
-                    //bytesAvailable -= await stream.ReadAsync(buffer, data.Count, count, token);
+                {
                     await stream.ReadAsync(buffer, data.Count, buffer.Length, token);
-                    data.AddRange(buffer);
-                    //await stream.ReadAsync(buffer, token);
+                    data.AddRange(buffer);                   
                 } while (stream.Socket.Available > 0);
-                //if (readedBytes == 0) return default;
 
-                //string json = BytesToJson(buffer);
-                string json = BytesToJson(data.ToArray());
-                return JsonToNetworkObject(json);
+                INetworkMessage networkMessage = ReceivedBytesToNetworkMessage(data.ToArray());
+                if (networkMessage == null) return default;
+
+                return GetObjectFromMessage(networkMessage);
+
             }
             catch { throw; }
         }        
@@ -168,7 +159,7 @@ namespace NetworkMessage
             {
                 NetworkStream stream = client.GetStream();
                 List<byte> data = new List<byte>();
-                byte[] buffer = new byte[512];                
+                byte[] buffer = new byte[bytesForRead];                
                 int bytesAvailable = stream.Socket.Available;
                 do
                 {
@@ -192,7 +183,7 @@ namespace NetworkMessage
             {
                 NetworkStream stream = client.GetStream();
                 List<byte> data = new List<byte>();
-                byte[] buffer = new byte[512];
+                byte[] buffer = new byte[bytesForRead];
                 int bytesAvailable = stream.Socket.Available;
                 do
                 {
@@ -226,7 +217,7 @@ namespace NetworkMessage
 
         public abstract Task Handshake(CancellationToken token);
 
-        private byte[] PublicKeyToNetworkMessageFormat(byte[] publicKey)
+        protected virtual byte[] PublicKeyToNetworkMessageFormat(byte[] publicKey)
         {
             byte[] size = BitConverter.GetBytes(publicKey.Length);
             byte[] sizeWithPublickey = new byte[size.Length + publicKey.Length];
@@ -235,32 +226,31 @@ namespace NetworkMessage
             return sizeWithPublickey;
         }
 
-        private byte[] ToNetworkMessageFormat(INetworkObject networkObject)
+        protected virtual INetworkMessage ReceivedBytesToNetworkMessage(byte[] message)
         {
-            byte[] data = networkObject.ToByteArray(); //конвертирум данные в массив байт
-            data = asymmetricCryptographer.Encrypt(data, externalPublicKey); //шифруем данные
-            byte[] size = BitConverter.GetBytes(data.Length); //получаем размер данных
-            byte[] sizeWithEncData = new byte[size.Length + data.Length];
+            const int lengthInfo = sizeof(int);
+            if (message == default || message.Length < lengthInfo) throw new ArgumentNullException(nameof(message));
 
-            Buffer.BlockCopy(size, 0, sizeWithEncData, 0, size.Length);
-            Buffer.BlockCopy(data, 0, sizeWithEncData, size.Length, data.Length);
-            return sizeWithEncData;
+            int messageLength = BitConverter.ToInt32(message.Take(lengthInfo).ToArray());
+            if (messageLength <= 0) return default;
+
+            string json = Encoding.UTF8.GetString(message.Skip(lengthInfo).Take(messageLength).ToArray());
+            INetworkMessage networkMessage = JsonConvert.DeserializeObject<INetworkMessage>(json);
+            if (networkMessage == null) return default;
+
+            return networkMessage;
         }
 
-        private string BytesToJson(byte[] data)
-        {            
-            if (data == default) throw new ArgumentNullException(nameof(data));
-
-            int size = BitConverter.ToInt32(data.Take(sizeof(int)).ToArray());           
-            if (size <= 0) return default;
-            data = data.Skip(sizeof(int)).Take(size).ToArray();
-            data = asymmetricCryptographer.Decrypt(data, ownPrivateKey = keyStore.PrivateKey);
-            return Encoding.UTF8.GetString(data);
-        }
-
-        private INetworkObject JsonToNetworkObject(string json)
+        protected virtual INetworkObject GetObjectFromMessage(INetworkMessage networkMessage)
         {
-            JObject receivedJsonObject = JObject.Parse(json);
+            if (networkMessage == null) return default;
+
+            byte[] symKey = asymmetricCryptographer.Decrypt(networkMessage.EncryptedSymmetricKey, ownPrivateKey);
+            byte[] IV = asymmetricCryptographer.Decrypt(networkMessage.EncryptedIV, ownPrivateKey);
+            byte[] networkObjectBytes = symmetricCryptographer.Decrypt(networkMessage.EncryptedNetworkObject, symKey, IV);
+            string networkObjectJson = Encoding.UTF8.GetString(networkObjectBytes);
+
+            JObject receivedJsonObject = JObject.Parse(networkObjectJson);
             // Получаем значение поля "ObjectType" из JSON
             string objectType = receivedJsonObject[nameof(INetworkObject.NetworkObjectType)].ToString();
             // Получаем тип объекта по имени

@@ -1,6 +1,4 @@
 ﻿using NetworkMessage.CommandsResaults;
-using Newtonsoft.Json;
-using System.Text;
 
 namespace NetworkMessage.Commands
 {
@@ -15,10 +13,14 @@ namespace NetworkMessage.Commands
             return Convert.ToBase64String(ToByteArray());
         }
 
-        public byte[] ToByteArray()
+        public override string ToString()
         {
-            string json = JsonConvert.SerializeObject(this);
-            return Encoding.UTF8.GetBytes(json);
+            return Newtonsoft.Json.JsonConvert.SerializeObject(this);
+        }
+
+        public byte[] ToByteArray()
+        {            
+            return System.Text.Encoding.UTF8.GetBytes(ToString());
         }
     }
 }

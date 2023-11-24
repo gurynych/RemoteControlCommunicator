@@ -5,13 +5,13 @@ using System.Windows.Markup;
 namespace NetworkMessage.Cryptography
 {
     /// <summary>
-    /// Предоставляет ассинхронной криптографии, используя алгоритм RSA.
+    /// Предоставляет реализацию асимметричной криптографии, используя алгоритм RSA.
     /// Длинна ключей 2048 бит
     /// </summary>
     public class RSACryptographer : IAsymmetricCryptographer
     {
         private const int KEY_SIZE = 2048;
-
+            
         /// <summary>
         /// Дешифровать данные, используя закрытый ключ
         /// </summary>
