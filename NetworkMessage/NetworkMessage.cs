@@ -1,10 +1,11 @@
 ﻿using NetworkMessage.Cryptography;
-using System.Security.Cryptography.X509Certificates;
 
 namespace NetworkMessage
 {
     public class NetworkMessage : INetworkMessage
     {              
+        private readonly INetworkObject networkObject;
+
         public byte[] EncryptedSymmetricKey { get; set; }
 
         public byte[] EncryptedIV { get; set; }
@@ -15,17 +16,9 @@ namespace NetworkMessage
         {            
         }
 
-        public NetworkMessage(INetworkObject networkObject,
-            IAsymmetricCryptographer asymmetricCryptographer, 
-            ISymmetricCryptographer symmetricCryptographer,
-            byte[] publicKey)
+        public NetworkMessage(INetworkObject networkObject)
         {
-            byte[] key = symmetricCryptographer.GenerateKey();
-            byte[] IV = symmetricCryptographer.GenerateIV();
-
-            EncryptedNetworkObject = symmetricCryptographer.Encrypt(networkObject.ToByteArray(), key, IV);
-            EncryptedSymmetricKey = asymmetricCryptographer.Encrypt(key, publicKey);
-            EncryptedIV = asymmetricCryptographer.Encrypt(IV, publicKey);
+            this.networkObject = networkObject ?? throw new ArgumentNullException(nameof(networkObject));
         }
 
         public override string ToString()
@@ -43,5 +36,20 @@ namespace NetworkMessage
             return result;
         }
 
+        public async Task EncryptMessage(byte[] asymmetricPublicKey, 
+            IAsymmetricCryptographer asymmetricCryptographer = null,
+            ISymmetricCryptographer symmetricCryptographer = null,
+            CancellationToken token = default)
+        {
+            IAsymmetricCryptographer asymCr = asymmetricCryptographer ?? new RSACryptographer();
+            ISymmetricCryptographer symCr = symmetricCryptographer ?? new AESCryptographer();
+
+            byte[] key = symCr.GenerateKey();
+            byte[] IV = symCr.GenerateIV();
+
+            EncryptedNetworkObject = await symCr.EncryptAsync(networkObject.ToByteArray(), key, IV, token);
+            EncryptedSymmetricKey = asymCr.Encrypt(key, asymmetricPublicKey);
+            EncryptedIV = asymCr.Encrypt(IV, asymmetricPublicKey);
+        }
     }
 }

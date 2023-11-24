@@ -11,6 +11,7 @@
 
         public override string ToString()
         {
+            var a = Newtonsoft.Json.JsonConvert.SerializeObject(this);
             return Newtonsoft.Json.JsonConvert.SerializeObject(this);
         }
 

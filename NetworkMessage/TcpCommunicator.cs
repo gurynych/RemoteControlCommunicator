@@ -5,6 +5,7 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System.Net.Sockets;
 using System.Text;
+using System.Windows.Forms;
 
 namespace NetworkMessage
 {
@@ -46,6 +47,7 @@ namespace NetworkMessage
 
             try
             {
+                networkMessage.EncryptMessage(externalPublicKey).Wait();
                 NetworkStream stream = client.GetStream();                
                 stream.Write(networkMessage.ToByteArray());
             }
@@ -97,6 +99,7 @@ namespace NetworkMessage
 
             try
             {
+                await networkMessage.EncryptMessage(externalPublicKey);
                 NetworkStream stream = client.GetStream();
                 await stream.WriteAsync(networkMessage.ToByteArray(), token);
             }
@@ -116,14 +119,15 @@ namespace NetworkMessage
                 byte[] buffer = new byte[bytesForRead];                
                 do
                 {
-                    stream.Read(buffer, data.Count, buffer.Length);
+                    stream.Read(buffer);
+                    //stream.Read(buffer, data.Count, buffer.Length);
                     data.AddRange(buffer);
                 } while (stream.Socket.Available > 0);
 
                 INetworkMessage networkMessage = ReceivedBytesToNetworkMessage(data.ToArray());
-                if (networkMessage == null) return default;              
+                if (networkMessage == null) return default;
 
-                return GetObjectFromMessage(networkMessage);
+                return GetObjectFromMessage(networkMessage).Result;
             }
             catch { throw; }
         }
@@ -139,14 +143,15 @@ namespace NetworkMessage
                 int bytesAvailable = stream.Socket.Available;
                 do
                 {
-                    await stream.ReadAsync(buffer, data.Count, buffer.Length, token);
+                    await stream.ReadAsync(buffer, token);
+                    //await stream.ReadAsync(buffer, data.Count, buffer.Length, token);
                     data.AddRange(buffer);                   
                 } while (stream.Socket.Available > 0);
 
                 INetworkMessage networkMessage = ReceivedBytesToNetworkMessage(data.ToArray());
                 if (networkMessage == null) return default;
 
-                return GetObjectFromMessage(networkMessage);
+                return await GetObjectFromMessage(networkMessage, token);
 
             }
             catch { throw; }
@@ -235,19 +240,19 @@ namespace NetworkMessage
             if (messageLength <= 0) return default;
 
             string json = Encoding.UTF8.GetString(message.Skip(lengthInfo).Take(messageLength).ToArray());
-            INetworkMessage networkMessage = JsonConvert.DeserializeObject<INetworkMessage>(json);
+            INetworkMessage networkMessage = JsonConvert.DeserializeObject<NetworkMessage>(json);
             if (networkMessage == null) return default;
 
             return networkMessage;
         }
 
-        protected virtual INetworkObject GetObjectFromMessage(INetworkMessage networkMessage)
+        protected virtual async Task<INetworkObject> GetObjectFromMessage(INetworkMessage networkMessage, CancellationToken token = default)
         {
             if (networkMessage == null) return default;
 
             byte[] symKey = asymmetricCryptographer.Decrypt(networkMessage.EncryptedSymmetricKey, ownPrivateKey);
             byte[] IV = asymmetricCryptographer.Decrypt(networkMessage.EncryptedIV, ownPrivateKey);
-            byte[] networkObjectBytes = symmetricCryptographer.Decrypt(networkMessage.EncryptedNetworkObject, symKey, IV);
+            byte[] networkObjectBytes = await symmetricCryptographer.DecryptAsync(networkMessage.EncryptedNetworkObject, symKey, IV, token);
             string networkObjectJson = Encoding.UTF8.GetString(networkObjectBytes);
 
             JObject receivedJsonObject = JObject.Parse(networkObjectJson);

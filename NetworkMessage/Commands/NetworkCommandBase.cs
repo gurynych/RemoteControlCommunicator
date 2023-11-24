@@ -14,12 +14,12 @@ namespace NetworkMessage.Commands
         }
 
         public override string ToString()
-        {
+        {            
             return Newtonsoft.Json.JsonConvert.SerializeObject(this);
         }
 
         public byte[] ToByteArray()
-        {            
+        {
             return System.Text.Encoding.UTF8.GetBytes(ToString());
         }
     }

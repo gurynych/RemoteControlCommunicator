@@ -8,8 +8,8 @@ namespace NetworkMessage.Cryptography
 {
     public interface ICryptographer
     {
-        byte[] Encrypt(byte[] data, byte[] key);
+        Task<byte[]> Encrypt(byte[] data, byte[] key, CancellationToken token = default);
 
-        byte[] Decrypt(byte[] encryptedData, byte[] key);
+        Task<byte[]> Decrypt(byte[] encryptedData, byte[] key, CancellationToken token = default);
     }
 }
