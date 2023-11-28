@@ -1,4 +1,4 @@
-﻿using NetworkMessage.CommandsResaults;
+﻿using NetworkMessage.CommandsResults;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -15,12 +15,12 @@ namespace NetworkMessage.Commands
             Path = path;
         }
 
-        public override async Task<INetworkCommandResult> Do(CancellationToken token = default, params object[] objects)
+        public override async Task<NetworkCommandResultBase> DoAsync(CancellationToken token = default, params object[] objects)
         {
             if(File.Exists(Path))
             {
                 byte[] file = await File.ReadAllBytesAsync(Path);
-                INetworkCommandResult loadedFileResult = new DownloadedFileResult(file);
+                NetworkCommandResultBase loadedFileResult = new DownloadedFileResult(file);
                 return loadedFileResult;
             }
             return default;

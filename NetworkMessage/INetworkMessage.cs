@@ -1,4 +1,5 @@
-﻿using NetworkMessage.Cryptography;
+﻿using NetworkMessage.Cryptography.AsymmetricCryptography;
+using NetworkMessage.Cryptography.SymmetricCryptography;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
@@ -26,13 +27,18 @@ namespace NetworkMessage
         /// <param name="symmetricCryptographer">
         /// Предоставляет интерфейс для симметричного шифрования данных. По умолчанию используется AES алгоритм
         /// </param>
-        Task EncryptMessage(byte[] asymmetricPublicKey,
+        Task EncryptMessageAsync(byte[] asymmetricPublicKey,
             IAsymmetricCryptographer asymmetricCryptographer = null,
             ISymmetricCryptographer symmetricCryptographer = null,
             CancellationToken token = default);
 
+        /*public Task<INetworkMessage> DecryptMessageAsync(byte[] asymmetricPublicKey,
+            IAsymmetricCryptographer asymmetricCryptographer = null,
+            ISymmetricCryptographer symmetricCryptographer = null,
+            CancellationToken token = default);*/
+
         string ToString();
 
-        byte[] ToByteArray();
+        byte[] ToByteArrayRequiredFormat();
     }
 }

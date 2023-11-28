@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace NetworkMessage.CommandsResaults
+namespace NetworkMessage.CommandsResults
 {
     public class AmountOfOccupiedRAMResult : NetworkCommandResultBase
     {
@@ -21,13 +21,13 @@ namespace NetworkMessage.CommandsResaults
             {
                 return BitConverter.GetBytes(AmountOfOccupiedRAM);
             }
-            catch (NullReferenceException nullEx)
+            catch (NullReferenceException)
             {
-                throw nullEx;
+                throw;
             }
-            catch (NotSupportedException notSuppEx)
+            catch (NotSupportedException)
             {
-                throw notSuppEx;
+                throw;
             }
             catch (Exception)
             {

@@ -1,4 +1,4 @@
-﻿namespace NetworkMessage.Cryptography
+﻿namespace NetworkMessage.Cryptography.Hash
 {
     public interface IHashCreater
     {

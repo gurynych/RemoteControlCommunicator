@@ -4,15 +4,17 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace NetworkMessage.Cryptography
+namespace NetworkMessage.Cryptography.SymmetricCryptography
 {
     /// <summary>
     /// Предоставляет методы для реализации симметричного шифрования
     /// </summary>
     public interface ISymmetricCryptographer
     {
+        byte[] Encrypt(byte[] data, byte[] key, byte[] IV);
+
         /// <summary>
-        /// Зашифровать данные
+        /// Зашифровать данные. Поддерживает ожидание
         /// </summary>
         /// <param name="data">Данные для зашифровки</param>
         /// <param name="key">Ключ, при помощи которого будут зашифрованы данные</param>
@@ -20,8 +22,10 @@ namespace NetworkMessage.Cryptography
         /// <returns>Зашифрованнные данные</returns>
         Task<byte[]> EncryptAsync(byte[] data, byte[] key, byte[] IV, CancellationToken token = default);
 
+        byte[] Decrypt(byte[] encryptedData, byte[] key, byte[] IV);
+
         /// <summary>
-        /// Расшифровать данные
+        /// Расшифровать данные. Поддерживает ожидание
         /// </summary>
         /// <param name="encryptedData">Зашифрованные данные</param>
         /// <param name="key">Ключ, при помощи которого будут расшифрованы данные</param>

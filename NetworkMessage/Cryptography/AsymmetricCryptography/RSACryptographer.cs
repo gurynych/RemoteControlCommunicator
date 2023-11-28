@@ -2,7 +2,7 @@
 using System.Security.Cryptography.X509Certificates;
 using System.Windows.Markup;
 
-namespace NetworkMessage.Cryptography
+namespace NetworkMessage.Cryptography.AsymmetricCryptography
 {
     /// <summary>
     /// Предоставляет реализацию асимметричной криптографии, используя алгоритм RSA.
@@ -11,7 +11,7 @@ namespace NetworkMessage.Cryptography
     public class RSACryptographer : IAsymmetricCryptographer
     {
         private const int KEY_SIZE = 2048;
-            
+
         /// <summary>
         /// Дешифровать данные, используя закрытый ключ
         /// </summary>
@@ -27,9 +27,9 @@ namespace NetworkMessage.Cryptography
                 rsa.ImportCspBlob(privateKey);
                 return rsa.Decrypt(encryptedData, true);
             }
-            catch (CryptographicException cryptoEx)
+            catch (CryptographicException)
             {
-                throw cryptoEx;
+                throw;
             }
         }
 
@@ -53,9 +53,9 @@ namespace NetworkMessage.Cryptography
                 rsa.ImportCspBlob(publicKey);
                 return rsa.Encrypt(data, true);
             }
-            catch (CryptographicException cryptoEx)
+            catch (CryptographicException)
             {
-                throw cryptoEx;
+                throw;
             }
         }
 
@@ -76,7 +76,7 @@ namespace NetworkMessage.Cryptography
         /// <returns>Сгенерированный открытый ключ, представляет собой массив байт, длинной 2048 бит</returns>
         /// <exception cref="ArgumentNullException"></exception>
         public byte[] GeneratePublicKey(byte[] privateKey)
-        {            
+        {
             if (privateKey == null) throw new ArgumentNullException(nameof(privateKey));
 
             using var rsa = new RSACryptoServiceProvider(KEY_SIZE);

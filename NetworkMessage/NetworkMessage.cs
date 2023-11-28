@@ -1,9 +1,13 @@
 ﻿using NetworkMessage.Cryptography;
+using NetworkMessage.Cryptography.AsymmetricCryptography;
+using NetworkMessage.Cryptography.SymmetricCryptography;
+using Newtonsoft.Json;
 
 namespace NetworkMessage
 {
     public class NetworkMessage : INetworkMessage
-    {              
+    {
+        [JsonIgnore]
         private readonly INetworkObject networkObject;
 
         public byte[] EncryptedSymmetricKey { get; set; }
@@ -23,10 +27,10 @@ namespace NetworkMessage
 
         public override string ToString()
         {
-            return Newtonsoft.Json.JsonConvert.SerializeObject(this);
+            return JsonConvert.SerializeObject(this);
         }
 
-        public byte[] ToByteArray()
+        public byte[] ToByteArrayRequiredFormat()
         {
             byte[] data = System.Text.Encoding.UTF8.GetBytes(ToString());
             byte[] dataLength = BitConverter.GetBytes(data.Length);
@@ -36,11 +40,16 @@ namespace NetworkMessage
             return result;
         }
 
-        public async Task EncryptMessage(byte[] asymmetricPublicKey, 
+        public async Task EncryptMessageAsync(byte[] asymmetricPublicKey, 
             IAsymmetricCryptographer asymmetricCryptographer = null,
             ISymmetricCryptographer symmetricCryptographer = null,
             CancellationToken token = default)
         {
+            if (asymmetricPublicKey == null || asymmetricPublicKey.Length == 0)
+            {
+                throw new ArgumentNullException(nameof(asymmetricPublicKey));
+            }
+
             IAsymmetricCryptographer asymCr = asymmetricCryptographer ?? new RSACryptographer();
             ISymmetricCryptographer symCr = symmetricCryptographer ?? new AESCryptographer();
 
@@ -51,5 +60,22 @@ namespace NetworkMessage
             EncryptedSymmetricKey = asymCr.Encrypt(key, asymmetricPublicKey);
             EncryptedIV = asymCr.Encrypt(IV, asymmetricPublicKey);
         }
+
+        /*public async Task<INetworkMessage> DecryptMessageAsync(byte[] asymmetricPublicKey,
+            IAsymmetricCryptographer asymmetricCryptographer = null,
+            ISymmetricCryptographer symmetricCryptographer = null,
+            CancellationToken token = default)
+        {
+            throw new NotImplementedException();
+            if (asymmetricPublicKey == null || asymmetricPublicKey.Length == 0)
+            {
+                throw new ArgumentNullException(nameof(asymmetricPublicKey));
+            }
+
+            IAsymmetricCryptographer asymCr = asymmetricCryptographer ?? new RSACryptographer();
+            ISymmetricCryptographer symCr = symmetricCryptographer ?? new AESCryptographer();
+
+
+        }*/
     }
 }

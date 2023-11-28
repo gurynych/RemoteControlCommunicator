@@ -1,6 +1,7 @@
-﻿using NetworkMessage.CommandsResaults;
-using NetworkMessage.Cryptography;
+﻿using NetworkMessage.CommandsResults;
+using NetworkMessage.Cryptography.AsymmetricCryptography;
 using NetworkMessage.Cryptography.KeyStore;
+using NetworkMessage.Cryptography.SymmetricCryptography;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System.Net.Sockets;
@@ -47,9 +48,9 @@ namespace NetworkMessage
 
             try
             {
-                networkMessage.EncryptMessage(externalPublicKey).Wait();
+                networkMessage.EncryptMessageAsync(externalPublicKey).GetAwaiter().GetResult();
                 NetworkStream stream = client.GetStream();                
-                stream.Write(networkMessage.ToByteArray());
+                stream.Write(networkMessage.ToByteArrayRequiredFormat());
             }
             catch (Exception)
             {
@@ -99,9 +100,9 @@ namespace NetworkMessage
 
             try
             {
-                await networkMessage.EncryptMessage(externalPublicKey);
+                await networkMessage.EncryptMessageAsync(externalPublicKey);
                 NetworkStream stream = client.GetStream();
-                await stream.WriteAsync(networkMessage.ToByteArray(), token);
+                await stream.WriteAsync(networkMessage.ToByteArrayRequiredFormat(), token);
             }
             catch (Exception)
             {

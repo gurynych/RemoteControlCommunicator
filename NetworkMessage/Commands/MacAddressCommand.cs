@@ -1,11 +1,11 @@
-﻿using NetworkMessage.CommandsResaults;
+﻿using NetworkMessage.CommandsResults;
 using System.Net.NetworkInformation;
 
 namespace NetworkMessage.Commands
 {
     public class MacAddressCommand : NetworkCommandBase
     {
-        public override async Task<INetworkCommandResult> Do(CancellationToken token = default, params object[] objects)
+        public override async Task<NetworkCommandResultBase> DoAsync(CancellationToken token = default, params object[] objects)
         {
             string macAddress = NetworkInterface.GetAllNetworkInterfaces()
                 .Where(x => x.OperationalStatus == OperationalStatus.Up)

@@ -1,4 +1,4 @@
-﻿using NetworkMessage.CommandsResaults;
+﻿using NetworkMessage.CommandsResults;
 using System.Drawing;
 using System.Runtime.InteropServices;
 
@@ -6,7 +6,7 @@ namespace NetworkMessage.Commands
 {
     public class ScreenshotCommand : NetworkCommandBase
     {
-        public override Task<INetworkCommandResult> Do(CancellationToken token = default,params object[] objects)
+        public override Task<NetworkCommandResultBase> DoAsync(CancellationToken token = default,params object[] objects)
         { 
             //throw new NotImplementedException();
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
@@ -19,7 +19,7 @@ namespace NetworkMessage.Commands
                     g.CopyFromScreen(Point.Empty, Point.Empty, new Size(width, height));
                 }
 
-                INetworkCommandResult screenshot = new ScreenshotResult(bitmap);
+                NetworkCommandResultBase screenshot = new ScreenshotResult(bitmap);
                 return Task.FromResult(screenshot);
             }
 

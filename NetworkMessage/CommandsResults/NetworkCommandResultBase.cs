@@ -1,6 +1,6 @@
-﻿namespace NetworkMessage.CommandsResaults
+﻿namespace NetworkMessage.CommandsResults
 {
-    public abstract class NetworkCommandResultBase : INetworkCommandResult
+    public abstract class NetworkCommandResultBase : INetworkObject
     {
         public virtual Type NetworkObjectType => GetType();
 
@@ -10,8 +10,7 @@
         }
 
         public override string ToString()
-        {
-            var a = Newtonsoft.Json.JsonConvert.SerializeObject(this);
+        {            
             return Newtonsoft.Json.JsonConvert.SerializeObject(this);
         }
 

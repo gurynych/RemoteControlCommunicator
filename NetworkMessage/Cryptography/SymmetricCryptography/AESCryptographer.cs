@@ -1,12 +1,40 @@
-﻿using System.Security.Cryptography;
+﻿using Newtonsoft.Json.Linq;
+using System.ComponentModel;
+using System.Security.Cryptography;
 
-namespace NetworkMessage.Cryptography
+namespace NetworkMessage.Cryptography.SymmetricCryptography
 {
     /// <summary>
     /// Предоставляет реализацию синхронной криптографии, используя алгоритм AES
     /// </summary>
     public class AESCryptographer : ISymmetricCryptographer
     {
+        public byte[] Encrypt(byte[] data, byte[] key, byte[] IV)
+        {
+            try
+            {
+                string strData = System.Text.Encoding.UTF8.GetString(data);
+                using (Aes aes = Aes.Create())
+                {
+                    ICryptoTransform encryptor = aes.CreateEncryptor(key, IV);
+                    using (MemoryStream ms = new MemoryStream())
+                    {
+                        using (CryptoStream cs = new CryptoStream(ms, encryptor, CryptoStreamMode.Write))
+                        {
+                            using StreamWriter writer = new StreamWriter(cs);
+                            {
+                                writer.Write(strData.ToCharArray());
+                            }
+
+                        }
+
+                        return ms.ToArray();
+                    }
+                }
+            }
+            catch { throw; }
+        }
+
         public async Task<byte[]> EncryptAsync(byte[] data, byte[] key, byte[] IV, CancellationToken token = default)
         {
             try
@@ -27,6 +55,29 @@ namespace NetworkMessage.Cryptography
                         }
 
                         return ms.ToArray();
+                    }
+                }
+            }
+            catch { throw; }
+        }
+
+        public byte[] Decrypt(byte[] encryptedData, byte[] key, byte[] IV)
+        {
+            try
+            {
+                using (Aes aes = Aes.Create())
+                {
+                    ICryptoTransform encryptor = aes.CreateDecryptor(key, IV);
+                    using (MemoryStream ms = new MemoryStream(encryptedData))
+                    {
+                        using (CryptoStream cs = new CryptoStream(ms, encryptor, CryptoStreamMode.Read))
+                        {
+                            using (StreamReader reader = new StreamReader(cs))
+                            {
+                                var json = reader.ReadToEnd();
+                                return System.Text.Encoding.UTF8.GetBytes(json);
+                            }
+                        }
                     }
                 }
             }
@@ -54,7 +105,7 @@ namespace NetworkMessage.Cryptography
                 }
             }
             catch { throw; }
-        }        
+        }
 
         public byte[] GenerateIV()
         {

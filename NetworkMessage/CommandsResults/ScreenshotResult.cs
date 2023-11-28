@@ -1,6 +1,6 @@
 ﻿using System.Drawing;
 
-namespace NetworkMessage.CommandsResaults
+namespace NetworkMessage.CommandsResults
 {
     public class ScreenshotResult : NetworkCommandResultBase
     {
@@ -20,13 +20,13 @@ namespace NetworkMessage.CommandsResaults
                 return (byte[])converter.ConvertTo(Bitmap, typeof(byte[]));
                 //throw new NotImplementedException();
             }
-            catch (NullReferenceException nullEx)
+            catch (NullReferenceException)
             {
-                throw nullEx;
+                throw;
             }
-            catch (NotSupportedException notSuppEx)
+            catch (NotSupportedException)
             {
-                throw notSuppEx;
+                throw;
             }
             catch (Exception)
             {

@@ -1,9 +1,9 @@
-﻿namespace NetworkMessage.Cryptography
+﻿namespace NetworkMessage.Cryptography.Hash
 {
     public class BCryptCreater : IHashCreater
     {
         public string GenerateSalt()
-        {            
+        {
             return BCrypt.Net.BCrypt.GenerateSalt();
         }
 

@@ -1,4 +1,4 @@
-﻿using NetworkMessage.CommandsResaults;
+﻿using NetworkMessage.CommandsResults;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -11,7 +11,7 @@ namespace NetworkMessage.Commands
 {
     public class PercentageOfCPUUsageCommand : NetworkCommandBase
     {
-        public override Task<INetworkCommandResult> Do(CancellationToken token = default, params object[] objects)
+        public override Task<NetworkCommandResultBase> DoAsync(CancellationToken token = default, params object[] objects)
         {
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
@@ -23,7 +23,7 @@ namespace NetworkMessage.Commands
                     sum += cpuUsage;
                     Thread.Sleep(10);
                 }
-                INetworkCommandResult percentageOfCPUUsageResult = new PercentageOfCPUUsageResult((byte)(sum / 100));
+                NetworkCommandResultBase percentageOfCPUUsageResult = new PercentageOfCPUUsageResult((byte)(sum / 100));
                 return Task.FromResult(percentageOfCPUUsageResult);
             }
             return default;

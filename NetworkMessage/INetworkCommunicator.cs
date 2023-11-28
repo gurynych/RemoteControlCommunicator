@@ -1,4 +1,4 @@
-﻿using NetworkMessage.CommandsResaults;
+﻿using NetworkMessage.CommandsResults;
 
 namespace NetworkMessage
 {

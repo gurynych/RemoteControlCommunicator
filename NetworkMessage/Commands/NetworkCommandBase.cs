@@ -1,12 +1,12 @@
-﻿using NetworkMessage.CommandsResaults;
+﻿using NetworkMessage.CommandsResults;
 
 namespace NetworkMessage.Commands
 {
-    public abstract class NetworkCommandBase : INetworkCommand
+    public abstract class NetworkCommandBase : INetworkObject
     {
         public Type NetworkObjectType => GetType();
 
-        public abstract Task<INetworkCommandResult> Do(CancellationToken token = default, params object[] objects);
+        public abstract Task<NetworkCommandResultBase> DoAsync(CancellationToken token = default, params object[] objects);
 
         public string ToBase64()
         {

@@ -2,7 +2,7 @@
 using System.Drawing.Printing;
 using System.Text;
 
-namespace NetworkMessage.CommandsResaults
+namespace NetworkMessage.CommandsResults
 {
     public class MacAddressResult : NetworkCommandResultBase
     {

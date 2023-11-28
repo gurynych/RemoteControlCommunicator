@@ -1,4 +1,4 @@
-﻿namespace NetworkMessage.CommandsResaults
+﻿namespace NetworkMessage.CommandsResults
 {
     /// <summary>
     /// Класс, предоставляющий публичный ключ отправителя

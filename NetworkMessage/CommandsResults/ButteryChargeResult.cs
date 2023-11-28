@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace NetworkMessage.CommandsResaults
+namespace NetworkMessage.CommandsResults
 {
     public class ButteryChargeResult : NetworkCommandResultBase
     {
@@ -24,13 +24,13 @@ namespace NetworkMessage.CommandsResaults
                 ByteConverter converter = new ByteConverter();
                 return (byte[])converter.ConvertTo(ButteryChargePercent, typeof(byte[]));
             }
-            catch (NullReferenceException nullEx)
+            catch (NullReferenceException)
             {
-                throw nullEx;
+                throw;
             }
-            catch (NotSupportedException notSuppEx)
+            catch (NotSupportedException)
             {
-                throw notSuppEx;
+                throw;
             }
             catch (Exception)
             {

@@ -1,4 +1,4 @@
-﻿namespace NetworkMessage.Cryptography
+﻿namespace NetworkMessage.Cryptography.AsymmetricCryptography
 {
     /// <summary>
     /// Предоставляет методы для реализации асимметричного шифрования
@@ -33,6 +33,6 @@
         /// </summary>
         /// <param name="length">Длина генерируемого ключа</param>
         /// <returns></returns>
-        byte[] GeneratePublicKey(byte[] privateKey);        
+        byte[] GeneratePublicKey(byte[] privateKey);
     }
 }

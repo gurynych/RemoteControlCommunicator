@@ -1,4 +1,4 @@
-﻿using NetworkMessage.CommandsResaults;
+﻿using NetworkMessage.CommandsResults;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
@@ -11,12 +11,12 @@ namespace NetworkMessage.Commands
 {
     public class ButteryChargePersentageCommand : NetworkCommandBase
     {
-        public override Task<INetworkCommandResult> Do(CancellationToken token = default, params object[] objects)
+        public override Task<NetworkCommandResultBase> DoAsync(CancellationToken token = default, params object[] objects)
         {
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
                 PowerStatus powerStatus =SystemInformation.PowerStatus;
-                INetworkCommandResult butteryChargePercent;
+                NetworkCommandResultBase butteryChargePercent;
 
                 if (powerStatus.BatteryChargeStatus is BatteryChargeStatus.NoSystemBattery)
                 {
