@@ -1,37 +1,23 @@
-﻿using System.Drawing;
-
-namespace NetworkMessage.CommandsResults
+﻿namespace NetworkMessage.CommandsResults
 {
-    public class ScreenshotResult : NetworkCommandResultBase
+    public class ScreenshotResult : BaseNetworkCommandResult
     {
-        public Bitmap Bitmap { get; private set; }
+        [Newtonsoft.Json.JsonProperty]
+        public byte[] Image { get; private set; }
 
-        public ScreenshotResult(Bitmap bitmap)
-        {
-            if (bitmap == default) throw new ArgumentNullException(nameof(bitmap));
-            Bitmap = bitmap;
+        [Newtonsoft.Json.JsonConstructor]
+        private ScreenshotResult()
+        {            
         }
 
-        public override byte[] ToByteArray()
+        public ScreenshotResult(byte[] image)
         {
-            try
-            {
-                ImageConverter converter = new ImageConverter();
-                return (byte[])converter.ConvertTo(Bitmap, typeof(byte[]));
-                //throw new NotImplementedException();
-            }
-            catch (NullReferenceException)
-            {
-                throw;
-            }
-            catch (NotSupportedException)
-            {
-                throw;
-            }
-            catch (Exception)
-            {
-                throw;
-            }
+            Image = image ?? throw new ArgumentNullException(nameof(image));
+        }
+
+        public ScreenshotResult(string errorMessage, Exception exception = null)
+            : base(errorMessage, exception)
+        {
         }
     }
 }

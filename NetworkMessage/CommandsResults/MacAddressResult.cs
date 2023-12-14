@@ -1,24 +1,24 @@
-﻿using Newtonsoft.Json;
-using System.Drawing.Printing;
-using System.Text;
-
-namespace NetworkMessage.CommandsResults
+﻿namespace NetworkMessage.CommandsResults
 {
-    public class MacAddressResult : NetworkCommandResultBase
+    public class MacAddressResult : BaseNetworkCommandResult
     {
+        [Newtonsoft.Json.JsonProperty]
         public string MacAddress { get; private set; }
+
+        [Newtonsoft.Json.JsonConstructor]
+        private MacAddressResult()
+        {            
+        }
 
         public MacAddressResult(string macAddress)
         {
-            if (macAddress == default) throw new ArgumentNullException(nameof(macAddress));
+            if (string.IsNullOrEmpty(macAddress)) throw new ArgumentNullException(nameof(macAddress));
             MacAddress = macAddress;
         }
 
-
-        /*public override byte[] ToByteArray()
+        public MacAddressResult(string errorMessage, Exception exception = null)
+            : base(errorMessage, exception)
         {
-            return Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(this));
-            //return Encoding.UTF8.GetBytes(macAddress);
-        }*/
+        }
     }
 }

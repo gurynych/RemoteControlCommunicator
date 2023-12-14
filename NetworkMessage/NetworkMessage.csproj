@@ -1,16 +1,19 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
-  <PropertyGroup>
-	<TargetFramework>net6.0-windows</TargetFramework>    
-    <ImplicitUsings>enable</ImplicitUsings>
-    <UseWindowsForms>true</UseWindowsForms>
-	<Nullable>disable</Nullable>
-  </PropertyGroup>  
+	<PropertyGroup>
+		<TargetFramework>net6.0</TargetFramework>
+		<ImplicitUsings>enable</ImplicitUsings>		
+		<Nullable>disable</Nullable>
+		<Version>1.1.9</Version>
+		<Authors>gurynych</Authors>
+		<GeneratePackageOnBuild>True</GeneratePackageOnBuild>
+		<Title>NetworkMessage</Title>
+	</PropertyGroup>
 
-  <ItemGroup>
-    <PackageReference Include="BCrypt.Net-Next" Version="4.0.3" />
-    <PackageReference Include="libc.hwid" Version="6.0.1" />
-    <PackageReference Include="Microsoft.IdentityModel.Tokens" Version="7.0.2" />
-    <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
-  </ItemGroup> 
+	<ItemGroup>
+		<PackageReference Include="BCrypt.Net-Next" Version="4.0.3" />
+		<PackageReference Include="libc.hwid" Version="6.0.1" />
+		<PackageReference Include="Microsoft.IdentityModel.Tokens" Version="7.0.2" />
+		<PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+	</ItemGroup>
 </Project>

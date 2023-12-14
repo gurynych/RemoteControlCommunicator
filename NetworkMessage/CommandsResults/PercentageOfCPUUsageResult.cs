@@ -1,41 +1,24 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace NetworkMessage.CommandsResults
+﻿namespace NetworkMessage.CommandsResults
 {
-    public class PercentageOfCPUUsageResult : NetworkCommandResultBase
+    public class PercentageOfCPUUsageResult : BaseNetworkCommandResult
     {
+        [Newtonsoft.Json.JsonProperty]
         public byte PercentageOfCPUUsage { get; private set; }
+
+        [Newtonsoft.Json.JsonConstructor]
+        private PercentageOfCPUUsageResult()
+        {            
+        }
 
         public PercentageOfCPUUsageResult(byte persentageOfCPUUsage)
         {
-            if (persentageOfCPUUsage == default) throw new ArgumentNullException(nameof(persentageOfCPUUsage));
+            if (persentageOfCPUUsage < 0) throw new ArgumentOutOfRangeException(nameof(persentageOfCPUUsage));
             PercentageOfCPUUsage = persentageOfCPUUsage;
         }
 
-        public override byte[] ToByteArray()
+        public PercentageOfCPUUsageResult(string errorMessage, Exception exception = null)
+            : base(errorMessage, exception)
         {
-            try
-            {
-                ByteConverter converter = new ByteConverter();
-                return (byte[])converter.ConvertTo(PercentageOfCPUUsage, typeof(byte[]));
-            }
-            catch (NullReferenceException)
-            {
-                throw;
-            }
-            catch (NotSupportedException)
-            {
-                throw;
-            }
-            catch (Exception)
-            {
-                throw;
-            }
-        }
+        }        
     }
 }

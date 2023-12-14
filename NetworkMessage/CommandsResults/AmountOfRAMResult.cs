@@ -1,40 +1,24 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace NetworkMessage.CommandsResults
+﻿namespace NetworkMessage.CommandsResults
 {
-    public class AmountOfRAMResult : NetworkCommandResultBase
+    public class AmountOfRAMResult : BaseNetworkCommandResult
     {
+        [Newtonsoft.Json.JsonProperty]
         public float AmountOfRAM { get; private set; }
 
+        [Newtonsoft.Json.JsonConstructor]
+        private AmountOfRAMResult()
+        {            
+        }
+        
         public AmountOfRAMResult(float amountOfRAM)
         {
             if (amountOfRAM == default) throw new ArgumentNullException(nameof(amountOfRAM));
             AmountOfRAM = amountOfRAM;
         }
 
-        public override byte[] ToByteArray()
+        public AmountOfRAMResult(string errorMessage, Exception exception = null)
+            : base(errorMessage, exception)
         {
-            try
-            {
-                return BitConverter.GetBytes(AmountOfRAM);
-            }
-            catch (NullReferenceException)
-            {
-                throw;
-            }
-            catch (NotSupportedException)
-            {
-                throw;
-            }
-            catch (Exception)
-            {
-                throw;
-            }
         }
     }
 }

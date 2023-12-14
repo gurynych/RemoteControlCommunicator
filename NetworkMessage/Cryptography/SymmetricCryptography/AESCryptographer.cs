@@ -1,5 +1,6 @@
 ﻿using Newtonsoft.Json.Linq;
-using System.ComponentModel;
+using System.IO;
+using System.IO.Pipes;
 using System.Security.Cryptography;
 
 namespace NetworkMessage.Cryptography.SymmetricCryptography
@@ -9,107 +10,175 @@ namespace NetworkMessage.Cryptography.SymmetricCryptography
     /// </summary>
     public class AESCryptographer : ISymmetricCryptographer
     {
-        public byte[] Encrypt(byte[] data, byte[] key, byte[] IV)
+        /*public byte[] Encrypt(byte[] data, byte[] key, byte[] IV)
         {
-            try
+            using (MemoryStream memoryStream = new MemoryStream())
+            using (Aes aes = Aes.Create())
             {
-                string strData = System.Text.Encoding.UTF8.GetString(data);
-                using (Aes aes = Aes.Create())
+                ConfigureAes(aes, key, IV);
+                using (CryptoStream cryptoStream = new CryptoStream(memoryStream, aes.CreateEncryptor(), CryptoStreamMode.Write))
                 {
-                    ICryptoTransform encryptor = aes.CreateEncryptor(key, IV);
-                    using (MemoryStream ms = new MemoryStream())
-                    {
-                        using (CryptoStream cs = new CryptoStream(ms, encryptor, CryptoStreamMode.Write))
-                        {
-                            using StreamWriter writer = new StreamWriter(cs);
-                            {
-                                writer.Write(strData.ToCharArray());
-                            }
-
-                        }
-
-                        return ms.ToArray();
-                    }
+                    cryptoStream.Write(data);                    
+                    cryptoStream.FlushFinalBlock();           
+                    return StreamToArray(memoryStream, data);
                 }
             }
-            catch { throw; }
         }
 
         public async Task<byte[]> EncryptAsync(byte[] data, byte[] key, byte[] IV, CancellationToken token = default)
         {
-            try
+            using (MemoryStream memoryStream = new MemoryStream())
+            using (Aes aes = Aes.Create())
             {
-                string strData = System.Text.Encoding.UTF8.GetString(data);
-                using (Aes aes = Aes.Create())
+                ConfigureAes(aes, key, IV);
+                using (CryptoStream cryptoStream = new CryptoStream(memoryStream, aes.CreateEncryptor(), CryptoStreamMode.Write))
                 {
-                    ICryptoTransform encryptor = aes.CreateEncryptor(key, IV);
-                    using (MemoryStream ms = new MemoryStream())
-                    {
-                        using (CryptoStream cs = new CryptoStream(ms, encryptor, CryptoStreamMode.Write))
-                        {
-                            using StreamWriter writer = new StreamWriter(cs);
-                            {
-                                await writer.WriteAsync(strData.ToCharArray(), token);
-                            }
-
-                        }
-
-                        return ms.ToArray();
-                    }
+                    await cryptoStream.WriteAsync(data, token);
+                    await cryptoStream.FlushFinalBlockAsync(token);
+                    return await StreamToArrayAsync(memoryStream, data, token);
                 }
             }
-            catch { throw; }
+        }
+
+        public byte[] Decrypt(byte[] data, byte[] key, byte[] IV)
+        {
+            using (MemoryStream encryptedMemoryStream = new MemoryStream(data))
+            using (Aes aes = Aes.Create())
+            {
+                ConfigureAes(aes, key, IV);
+                using (CryptoStream cryptoStream = new CryptoStream(encryptedMemoryStream, aes.CreateDecryptor(), CryptoStreamMode.Write))
+                {
+                    return StreamToArray(cryptoStream, data);
+                }
+            }
+        }
+
+        public async Task<byte[]> DecryptAsync(byte[] data, byte[] key, byte[] IV, CancellationToken token = default)
+        {
+            using (MemoryStream encryptedMemoryStream = new MemoryStream(data))
+            using (Aes aes = Aes.Create())
+            {
+                ConfigureAes(aes, key, IV);
+                using (CryptoStream cryptoStream = new CryptoStream(encryptedMemoryStream, aes.CreateDecryptor(), CryptoStreamMode.Write))
+                {
+                    return await StreamToArrayAsync(cryptoStream, data, token);
+                }
+            }
+        }
+
+        private byte[] StreamToArray(Stream stream, byte[] data)
+        {
+            int bufferSize = 1024 * 1024 * 10; // 10 MB
+            byte[] readData = new byte[(data.Length < bufferSize) ? data.Length : int.MaxValue];
+            int commonRead = 0;
+            for (int i = 0; i < data.Length; i += bufferSize)
+            {
+                int remainingBytes = Math.Min(bufferSize, data.Length - i);
+                byte[] buffer = new byte[remainingBytes];
+                int read = stream.Read(buffer, i, remainingBytes);
+                Buffer.BlockCopy(buffer, 0, readData, commonRead, read);
+                commonRead += read;
+            }
+
+            return readData.Take(commonRead).ToArray();
+        }
+
+        private async Task<byte[]> StreamToArrayAsync(Stream stream, byte[] data, CancellationToken token = default)
+        {
+            int bufferSize = 1024 * 1024 * 10; // 10 MB
+            byte[] readData = new byte[(data.Length < bufferSize) ? data.Length : int.MaxValue];
+            int commonRead = 0;
+            for (int i = 0; i < data.Length; i += bufferSize)
+            {
+                int remainingBytes = Math.Min(bufferSize, data.Length - i);
+                byte[] buffer = new byte[remainingBytes];
+                int read = await stream.ReadAsync(buffer, i, remainingBytes, token);
+                Buffer.BlockCopy(buffer, 0, readData, commonRead, read);
+                commonRead += read;
+            }
+
+            return readData.Take(commonRead).ToArray();
+        }*/
+
+        private void ConfigureAes(Aes aes, byte[] key = null, byte[] IV = null)
+        {
+            aes.KeySize = 256;
+            //aes.BlockSize = 128;
+            if (key != null && IV != null)
+            {
+                aes.Key = key;
+                aes.IV = IV;
+            }
+            /*aes.Padding = PaddingMode.Zeros;
+            aes.Mode = CipherMode.CBC;*/
+        }
+
+        public byte[] Encrypt(byte[] data, byte[] key, byte[] IV)
+        {
+            using (Aes aes = Aes.Create())
+            {
+                ConfigureAes(aes, key, IV);
+                using (ICryptoTransform encryptor = aes.CreateEncryptor(aes.Key, aes.IV))
+                    return PerformCryptography(data, encryptor);
+            }
+        }
+
+        public async Task<byte[]> EncryptAsync(byte[] data, byte[] key, byte[] IV, CancellationToken token = default)
+        {
+            using (Aes aes = Aes.Create())
+            {
+                ConfigureAes(aes, key, IV);
+                using (ICryptoTransform encryptor = aes.CreateEncryptor(aes.Key, aes.IV))
+                    return await PerformCryptographyAsync(data, encryptor, token);
+            }
         }
 
         public byte[] Decrypt(byte[] encryptedData, byte[] key, byte[] IV)
         {
-            try
+            using (Aes aes = Aes.Create())
             {
-                using (Aes aes = Aes.Create())
-                {
-                    ICryptoTransform encryptor = aes.CreateDecryptor(key, IV);
-                    using (MemoryStream ms = new MemoryStream(encryptedData))
-                    {
-                        using (CryptoStream cs = new CryptoStream(ms, encryptor, CryptoStreamMode.Read))
-                        {
-                            using (StreamReader reader = new StreamReader(cs))
-                            {
-                                var json = reader.ReadToEnd();
-                                return System.Text.Encoding.UTF8.GetBytes(json);
-                            }
-                        }
-                    }
-                }
+                ConfigureAes(aes, key, IV);
+                using (ICryptoTransform encryptor = aes.CreateDecryptor(aes.Key, aes.IV))
+                    return PerformCryptography(encryptedData, encryptor);
             }
-            catch { throw; }
         }
 
         public async Task<byte[]> DecryptAsync(byte[] encryptedData, byte[] key, byte[] IV, CancellationToken token = default)
         {
-            try
+            using (Aes aes = Aes.Create())
             {
-                using (Aes aes = Aes.Create())
-                {
-                    ICryptoTransform encryptor = aes.CreateDecryptor(key, IV);
-                    using (MemoryStream ms = new MemoryStream(encryptedData))
-                    {
-                        using (CryptoStream cs = new CryptoStream(ms, encryptor, CryptoStreamMode.Read))
-                        {
-                            using (StreamReader reader = new StreamReader(cs))
-                            {
-                                var json = await reader.ReadToEndAsync();
-                                return System.Text.Encoding.UTF8.GetBytes(json);
-                            }
-                        }
-                    }
-                }
+                ConfigureAes(aes, key, IV);
+                using (ICryptoTransform encryptor = aes.CreateDecryptor(aes.Key, aes.IV))
+                    return await PerformCryptographyAsync(encryptedData, encryptor, token);
             }
-            catch { throw; }
+        }
+
+        private byte[] PerformCryptography(byte[] data, ICryptoTransform cryptoTransform)
+        {
+            using (var ms = new MemoryStream())
+            using (var cryptoStream = new CryptoStream(ms, cryptoTransform, CryptoStreamMode.Write))
+            {
+                cryptoStream.Write(data, 0, data.Length);
+                cryptoStream.FlushFinalBlock();
+                return ms.ToArray();
+            }
+        }
+
+        private async Task<byte[]> PerformCryptographyAsync(byte[] data, ICryptoTransform cryptoTransform, CancellationToken token = default)
+        {
+            using (var ms = new MemoryStream())
+            using (var cryptoStream = new CryptoStream(ms, cryptoTransform, CryptoStreamMode.Write))
+            {
+                await cryptoStream.WriteAsync(data, 0, data.Length, token);
+                await cryptoStream.FlushFinalBlockAsync(token);
+                return ms.ToArray();
+            }
         }
 
         public byte[] GenerateIV()
         {
             using Aes aes = Aes.Create();
+            ConfigureAes(aes);
             aes.GenerateIV();
             return aes.IV;
         }
@@ -117,6 +186,7 @@ namespace NetworkMessage.Cryptography.SymmetricCryptography
         public byte[] GenerateKey()
         {
             using Aes aes = Aes.Create();
+            ConfigureAes(aes);
             aes.GenerateKey();
             return aes.Key;
         }
