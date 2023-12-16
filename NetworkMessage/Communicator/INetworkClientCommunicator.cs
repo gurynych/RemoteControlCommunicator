@@ -8,6 +8,9 @@ namespace NetworkMessage.Communicator
         bool IsConnected { get; }
 
         Task<bool> ConnectAsync(string serverIP, int serverPort, CancellationToken token = default);
+
+        Task<bool> ReconnectWithHandshakeAsync(string serverIP, int serverPort, IProgress<int> progress = null, CancellationToken token = default);
+
         Task SendMessageAsync(INetworkMessage message, IProgress<int> progress = null, CancellationToken token = default);
 
         Task<byte[]> ReceiveBytesAsync(IProgress<int> progress = null, CancellationToken token = default);

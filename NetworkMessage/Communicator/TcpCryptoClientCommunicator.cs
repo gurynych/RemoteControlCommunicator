@@ -50,6 +50,17 @@ namespace NetworkMessage.Communicator
             ownPrivateKey = keyStore.PrivateKey;
         }
 
+        public async Task<bool> ReconnectWithHandshakeAsync(string serverIP, int serverPort, IProgress<int> progress = null, CancellationToken token = default)
+        {
+            IsConnected = await ConnectAsync(serverIP, serverPort, token).ConfigureAwait(false);            
+            if (IsConnected)
+            {
+                IsConnected = await HandshakeAsync(progress, token);
+            }
+
+            return IsConnected;
+        }
+
         public async Task<bool> ConnectAsync(string serverIP, int serverPort, CancellationToken token = default)
         {
             try
@@ -74,6 +85,7 @@ namespace NetworkMessage.Communicator
             {
                 await memoryStream.CopyToAsync(networkStream, token);
                 await bufferedStream.FlushAsync(token);
+                progress?.Report(rawBytes.Length);
             }
         }
 
