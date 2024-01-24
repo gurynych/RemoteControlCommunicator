@@ -25,5 +25,10 @@ namespace NetworkMessage.Intents
         {
             return Newtonsoft.Json.JsonConvert.SerializeObject(this);
         }
+        
+        public virtual Stream ToStream()
+        {
+            return new MemoryStream(System.Text.Encoding.UTF8.GetBytes(ToString()));
+        }
     }
 }

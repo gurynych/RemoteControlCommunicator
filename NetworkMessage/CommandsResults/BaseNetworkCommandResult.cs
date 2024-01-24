@@ -11,7 +11,7 @@
         public Exception Exception { get; private set; }
         
         public BaseNetworkCommandResult()
-        {            
+        {
         }
 
         public BaseNetworkCommandResult(string errorMessage, Exception exception = null)
@@ -27,13 +27,18 @@
         }
 
         public override string ToString()
-        {            
+        {
             return Newtonsoft.Json.JsonConvert.SerializeObject(this);
         }
 
-        public byte[] ToByteArray()
+        public virtual byte[] ToByteArray()
         {
             return System.Text.Encoding.UTF8.GetBytes(ToString());
+        }
+
+        public virtual Stream ToStream()
+        {
+            return new MemoryStream(System.Text.Encoding.UTF8.GetBytes(ToString()));
         }
     }
 }

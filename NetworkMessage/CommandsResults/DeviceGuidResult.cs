@@ -1,4 +1,6 @@
-﻿namespace NetworkMessage.CommandsResults
+﻿using System.Text;
+
+namespace NetworkMessage.CommandsResults
 {
     public class DeviceGuidResult : BaseNetworkCommandResult
     {
@@ -20,10 +22,5 @@
             : base(errorMessage, exception)
         {
         }
-
-        /*public override byte[] ToByteArray()
-        {
-            return Encoding.UTF8.GetBytes(hwid);
-        }*/
     }
 }

@@ -100,6 +100,33 @@ namespace NetworkMessage.Cryptography.SymmetricCryptography
             return readData.Take(commonRead).ToArray();
         }*/
 
+        private readonly Aes aes;
+
+        public byte[] Key => aes.Key;
+
+        public byte[] IV => aes.IV;
+
+        public AESCryptographer()
+        {
+            aes = Aes.Create();
+            aes.KeySize = 256;
+            //aes.BlockSize = 8 * 1024 * 1024 * 4;
+            aes.GenerateKey();
+            aes.GenerateIV();
+        }
+
+        public ICryptoTransform CreateEncryptor()
+        {
+            return aes.CreateEncryptor();
+        }
+
+        public ICryptoTransform CreateDecryptor(byte[] key, byte[] IV)
+        {
+            aes.Key = key;
+            aes.IV = IV;
+            return aes.CreateDecryptor(key, IV);
+        }
+
         private void ConfigureAes(Aes aes, byte[] key = null, byte[] IV = null)
         {
             aes.KeySize = 256;

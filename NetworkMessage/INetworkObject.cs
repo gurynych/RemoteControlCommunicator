@@ -12,5 +12,7 @@ namespace NetworkMessage
         string ToBase64();
 
         string ToString();
+
+        public Stream ToStream();
     }
 }

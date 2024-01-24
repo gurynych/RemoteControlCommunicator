@@ -1,6 +1,6 @@
 ﻿namespace NetworkMessage.Models
 {
-    public class MyFileInfo
+    public class MyFileInfo : IInfoOfExplorerObject
     {
         [Newtonsoft.Json.JsonProperty]
         public string Name { get; private set; }

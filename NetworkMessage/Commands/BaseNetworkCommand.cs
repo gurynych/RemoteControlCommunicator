@@ -28,5 +28,10 @@ namespace NetworkMessage.Commands
         {
             return System.Text.Encoding.UTF8.GetBytes(ToString());
         }
+
+        public virtual Stream ToStream()
+        {
+            return new MemoryStream(System.Text.Encoding.UTF8.GetBytes(ToString()));
+        }
     }
 }

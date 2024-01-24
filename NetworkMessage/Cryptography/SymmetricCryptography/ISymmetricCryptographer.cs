@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -11,6 +12,10 @@ namespace NetworkMessage.Cryptography.SymmetricCryptography
     /// </summary>
     public interface ISymmetricCryptographer
     {
+        public byte[] Key { get; }
+
+        public byte[] IV { get; }
+
         byte[] Encrypt(byte[] data, byte[] key, byte[] IV);
 
         /// <summary>
@@ -36,5 +41,9 @@ namespace NetworkMessage.Cryptography.SymmetricCryptography
         byte[] GenerateKey();
 
         byte[] GenerateIV();
+
+        public ICryptoTransform CreateEncryptor();
+
+        public ICryptoTransform CreateDecryptor(byte[] key, byte[] IV);
     }
 }

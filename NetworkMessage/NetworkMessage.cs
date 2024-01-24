@@ -1,7 +1,6 @@
 ﻿using NetworkMessage.Cryptography.AsymmetricCryptography;
 using NetworkMessage.Cryptography.SymmetricCryptography;
 using Newtonsoft.Json;
-using System.Drawing;
 
 namespace NetworkMessage
 {
@@ -13,34 +12,16 @@ namespace NetworkMessage
         [JsonIgnore]
         public const int PackageSize = 1024 * 1024 * 64;
         [JsonIgnore]
-        private readonly INetworkObject networkObject = null;
-        [JsonIgnore]
-        private readonly byte[] rawData = null;
+        private readonly INetworkObject networkObject = null;        
 
         public async Task<byte[]> ToByteArrayAsync(byte[] asymmetricPublicKey,
             IAsymmetricCryptographer asymmetricCryptographer,
             ISymmetricCryptographer symmetricCryptographer,
             CancellationToken token = default)
         {
-            //TODO: большие объемы информации надо передавать пакетами
-
             byte[] key = symmetricCryptographer.GenerateKey();
             byte[] IV = symmetricCryptographer.GenerateIV();
-            byte[] rawData = this.networkObject?.ToByteArray() ?? this.rawData;
-
-            /*List<byte[]> encryptedPackets = new List<byte[]>();
-            int packetSize = 10 * 1024 * 1024; // Размер пакета - 10 МБ (в байтах)
-            for (int i = 0; i < rawData.Length; i += packetSize)
-            {
-                int remainingBytes = Math.Min(packetSize, rawData.Length - i);
-                byte[] packet = new byte[remainingBytes];
-                Array.Copy(rawData, i, packet, 0, remainingBytes);
-
-                byte[] encryptedPacket = await symmetricCryptographer.EncryptAsync(packet, key, IV, token);
-                encryptedPackets.Add(encryptedPacket);
-            }
-            
-            byte[] encryptedData = encryptedPackets.SelectMany(x => x).ToArray();*/
+            byte[] rawData = networkObject.ToByteArray();
 
             byte[] data = (rawData.Length <= PackageSize) ?
                 await EncryptShortData(rawData, symmetricCryptographer, key, IV, token) :
@@ -133,12 +114,6 @@ namespace NetworkMessage
         public NetworkMessage(INetworkObject networkObject)
         {
             this.networkObject = networkObject ?? throw new ArgumentNullException(nameof(networkObject));
-        }
-
-        public NetworkMessage(byte[] rawData)
-        {
-            if (rawData == null || rawData.Length == 0) throw new ArgumentNullException(nameof(rawData));
-            this.rawData = rawData;
         }
     }
 }
