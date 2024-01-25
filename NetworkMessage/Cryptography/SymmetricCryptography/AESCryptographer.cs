@@ -115,9 +115,11 @@ namespace NetworkMessage.Cryptography.SymmetricCryptography
             aes.GenerateIV();
         }
 
-        public ICryptoTransform CreateEncryptor()
+        public ICryptoTransform CreateEncryptor(byte[] key, byte[] IV)
         {
-            return aes.CreateEncryptor();
+            aes.Key = key;
+            aes.IV = IV;
+            return aes.CreateEncryptor(key, IV);
         }
 
         public ICryptoTransform CreateDecryptor(byte[] key, byte[] IV)

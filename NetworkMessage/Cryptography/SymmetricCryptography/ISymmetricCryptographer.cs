@@ -42,7 +42,7 @@ namespace NetworkMessage.Cryptography.SymmetricCryptography
 
         byte[] GenerateIV();
 
-        public ICryptoTransform CreateEncryptor();
+        public ICryptoTransform CreateEncryptor(byte[] key, byte[] IV);
 
         public ICryptoTransform CreateDecryptor(byte[] key, byte[] IV);
     }
