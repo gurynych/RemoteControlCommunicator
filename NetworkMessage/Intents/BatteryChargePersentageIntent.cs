@@ -8,18 +8,18 @@ using System.Threading.Tasks;
 
 namespace NetworkMessage.Intents
 {
-    public class ButteryChargePersentageIntent : BaseIntent
+    public class BatteryChargePersentageIntent : BaseIntent
     {
         public override string IntentType { get; protected set; }
 
-        public ButteryChargePersentageIntent()
+        public BatteryChargePersentageIntent()
         {
-            IntentType = nameof(ButteryChargePersentageIntent);
+            IntentType = nameof(BatteryChargePersentageIntent);
         }
 
         public override BaseNetworkCommand CreateCommand(ICommandFactory commandFactory)
         {
-            throw new NotImplementedException();
+            return commandFactory.CreateBatteryChargePersentageCommand();
         }
     }
 }

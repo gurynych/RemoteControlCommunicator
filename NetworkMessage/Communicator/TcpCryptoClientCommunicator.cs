@@ -1,9 +1,11 @@
-﻿using NetworkMessage.CommandsResults;
+﻿using Microsoft.VisualBasic;
+using NetworkMessage.CommandsResults;
 using NetworkMessage.Cryptography.AsymmetricCryptography;
 using NetworkMessage.Cryptography.KeyStore;
 using NetworkMessage.Cryptography.SymmetricCryptography;
 using NetworkMessage.Intents;
 using Newtonsoft.Json;
+using System.Data;
 using System.IO;
 using System.Net.Sockets;
 using System.Runtime.InteropServices.ObjectiveC;
@@ -14,7 +16,7 @@ namespace NetworkMessage.Communicator
 {
     public abstract class TcpCryptoClientCommunicator : INetworkCommunicator
     {
-        private const byte BufferSize = 255;
+        private const int BufferSize = 256;
         private bool isConnected;
         protected readonly TcpClient client;
         protected readonly IAsymmetricCryptographer asymmetricCryptographer;
@@ -33,7 +35,7 @@ namespace NetworkMessage.Communicator
         public bool IsConnected
         {
             get
-            {
+            {                
                 return isConnected && client.Connected;
             }
             set
@@ -52,7 +54,7 @@ namespace NetworkMessage.Communicator
             this.symmetricCryptographer = symmetricCryptographer ?? throw new ArgumentNullException(nameof(symmetricCryptographer));
             this.symmetricCryptographer = symmetricCryptographer ?? throw new ArgumentNullException(nameof(symmetricCryptographer));
             this.keyStore = keyStore ?? throw new ArgumentNullException(nameof(keyStore));
-            ownPrivateKey = keyStore.PrivateKey;
+            ownPrivateKey = keyStore.PrivateKey;            
         }
 
         public async Task<bool> ReconnectWithHandshakeAsync(string serverIP, int serverPort, IProgress<long> progress = null, CancellationToken token = default)
@@ -84,56 +86,48 @@ namespace NetworkMessage.Communicator
             if (!client.Connected) throw new SocketException((int)SocketError.NotConnected);
 
             stream.Position = 0;
-            //client.SendBufferSize = rawBytes.Length;
             NetworkStream networkStream = client.GetStream();
             BufferedStream bufferedStream = new BufferedStream(networkStream);
             byte[] cryptoKey = asymmetricCryptographer.Encrypt(symmetricCryptographer.Key, externalPublicKey);
             byte[] cryptoIV = asymmetricCryptographer.Encrypt(symmetricCryptographer.IV, externalPublicKey);
             byte[] sizeKey = BitConverter.GetBytes(cryptoKey.Length);
             byte[] sizeIV = BitConverter.GetBytes(cryptoIV.Length);
-
-            await networkStream.WriteAsync(sizeKey, token);
-            await networkStream.WriteAsync(cryptoKey, token);
-            await networkStream.WriteAsync(sizeIV, token);
-            await networkStream.WriteAsync(cryptoIV, token);
-
+            
+            await networkStream.WriteAsync(sizeKey, token).ConfigureAwait(false);
+            await networkStream.WriteAsync(cryptoKey, token).ConfigureAwait(false);   
+            await networkStream.WriteAsync(sizeIV, token).ConfigureAwait(false);
+            await networkStream.WriteAsync(cryptoIV, token).ConfigureAwait(false);
+            await networkStream.WriteAsync(BitConverter.GetBytes(stream.Length), token).ConfigureAwait(false);
+            
             using (CryptoStream cryptoStream =
-                new CryptoStream(networkStream,
+                new CryptoStream(stream,
                     symmetricCryptographer.CreateEncryptor(symmetricCryptographer.Key, symmetricCryptographer.IV),
-                    CryptoStreamMode.Write,
+                    CryptoStreamMode.Read,
                     true))
             {
-                //await cryptoStream.CopyToAsync(networkStream, token).ConfigureAwait(false);
-                //await cryptoStream.FlushAsync(token).ConfigureAwait(false);
                 int read;
                 long commonReaded = 0;
                 byte[] buffer = new byte[BufferSize];
-                while ((read = await stream.ReadAsync(buffer.AsMemory(0, BufferSize), token)) > 0)
+                while ((read = await cryptoStream.ReadAsync(buffer.AsMemory(0, BufferSize), token)) > 0)
                 {
-                    await cryptoStream.WriteAsync(buffer.AsMemory(0, read), token);
+                    await networkStream.WriteAsync(buffer.AsMemory(0, read), token);
                     commonReaded += read;
                     progress?.Report(commonReaded);
                 }
             }
 
-            //await cryptoStream.CopyToAsync(networkStream, token);
-
-            //for (int commonSend = 0; commonSend < rawBytes.Length; commonSend += BufferSize)
-            //{
-            //    progress?.Report(commonSend);
-            //    await networkStream.WriteAsync(rawBytes, commonSend, Math.Min(BufferSize, rawBytes.Length - commonSend), token);
-            //}
-
-            //await bufferedStream.FlushAsync(token);
+            await bufferedStream.FlushAsync(token);
         }
 
         public async Task<TNetworkObject> ReceiveNetworkObjectAsync<TNetworkObject>(IProgress<long> progress = null, CancellationToken token = default)
             where TNetworkObject : INetworkObject
-        {
-            //byte[] rawData = await ReceiveStreamAsync(progress, token).ConfigureAwait(false);
+        {           
             byte[] data;
-            using (MemoryStream stream = await ReceiveStreamAsync(progress, token).ConfigureAwait(false))
+            using (MemoryStream stream = new MemoryStream())
+            {
+                await ReceiveStreamAsync(stream, progress, token).ConfigureAwait(false);
                 data = stream.ToArray();
+            }
 
             string networkObjectJson = Encoding.UTF8.GetString(data);
             return JsonConvert.DeserializeObject<TNetworkObject>(networkObjectJson);
@@ -143,20 +137,18 @@ namespace NetworkMessage.Communicator
         {
             if (externalPublicKey == default || externalPublicKey.Length == 0)
                 throw new NullReferenceException($"External public key was null. Use {nameof(SetExternalPublicKey)}");
-
-            //byte[] bytes = await message.ToByteArrayAsync(externalPublicKey, asymmetricCryptographer, symmetricCryptographer, token);
-            //await SendRawBytesAsync(bytes, progress, token);
+            
             await SendStreamAsync(message.ToStream(), progress, token);
         }
 
-        public async Task<MemoryStream> ReceiveStreamAsync(IProgress<long> progress = null, CancellationToken token = default)
+        public async Task ReceiveStreamAsync(Stream streamToWrite, IProgress<long> progress = null, CancellationToken token = default)
         {
             //TODO: throw new NotConnectcedException();
             if (!client.Connected) throw new SocketException((int)SocketError.NotConnected);
 
             NetworkStream networkStream = client.GetStream();
             if (networkStream == null) throw new ArgumentNullException(nameof(networkStream));
-
+                       
             byte[] symKeySizeBytes = new byte[sizeof(int)];
             await networkStream.ReadAsync(symKeySizeBytes, 0, symKeySizeBytes.Length, token).ConfigureAwait(false);
             int symKeySize = BitConverter.ToInt32(symKeySizeBytes);
@@ -171,71 +163,42 @@ namespace NetworkMessage.Communicator
             _ = await networkStream.ReadAsync(IV, 0, IVSize, token).ConfigureAwait(false);
             IV = asymmetricCryptographer.Decrypt(IV, ownPrivateKey);
 
-            MemoryStream memoryStream = new MemoryStream();
+            byte[] longSize = new byte[sizeof(long)];
+            _ = await networkStream.ReadAsync(longSize, token).ConfigureAwait(false);
+            var messageSize = BitConverter.ToInt32(longSize);
+            messageSize = (int)Math.Ceiling(messageSize / 16.0) * 16;
+
+            using MemoryStream memoryStream = new MemoryStream();
             using (CryptoStream cryptoStream =
-                new CryptoStream(networkStream, symmetricCryptographer.CreateDecryptor(symKey, IV), CryptoStreamMode.Read, true))
+                new CryptoStream(streamToWrite, symmetricCryptographer.CreateDecryptor(symKey, IV), CryptoStreamMode.Write, true))
             {
                 //await cryptoStream.CopyToAsync(memoryStream, token).ConfigureAwait(false);
-                int read;
+                //await cryptoStream.ReadExactlyAsync(buffer, 0, size, token).ConfigureAwait(false);                
+                int read = 0;
                 int commonRead = 0;
-                byte[] data = new byte[BufferSize];
-                while ((read = await cryptoStream.ReadAsync(data.AsMemory(0, BufferSize), token)) > 0)
+                byte[] buffer = new byte[8 * 1024];
+                int sizeToRead;
+                do
                 {
-                    await memoryStream.WriteAsync(data.AsMemory(0, read), token);
-                    commonRead += read;
-                    progress?.Report(commonRead);
-                }
+                    //TODO: own ReadExactlyAsync
+                    sizeToRead = Math.Min(buffer.Length, messageSize - commonRead);     
+                    await networkStream.ReadExactlyAsync(buffer, 0, sizeToRead, token).ConfigureAwait(false);
+                    await memoryStream.WriteAsync(buffer.AsMemory(0, sizeToRead), token).ConfigureAwait(false);
+                    await cryptoStream.WriteAsync(memoryStream.ToArray().AsMemory(0, sizeToRead), token).ConfigureAwait(false);
+                    await cryptoStream.FlushAsync(token).ConfigureAwait(false);
+                    memoryStream.Position = 0;                                        
+                    commonRead += sizeToRead;
+                    progress?.Report(commonRead);                    
+
+                } while (sizeToRead > 0 && commonRead < messageSize);
             }
-
-            return memoryStream;
-
-            /*int commonRead = 0;
-            byte[] ecnryptedSymmetricKey = await ReadPackageFromStreamAsync(networkStream, token).ConfigureAwait(false);
-            if (ecnryptedSymmetricKey == default)
-            {
-                return default;
-            }
-            progress?.Report(commonRead += ecnryptedSymmetricKey.Length);
-
-            byte[] ecnryptedIV = await ReadPackageFromStreamAsync(networkStream, token).ConfigureAwait(false);
-            if (ecnryptedIV == default)
-            {
-                return default;
-            }
-            progress?.Report(commonRead += ecnryptedIV.Length);
-
-            int commonData = 0;
-            List<byte[]> packages = new List<byte[]>();
-            while (true)
-            {
-                if (!networkStream.DataAvailable)
-                {
-                    break;
-                }
-
-                byte[] package = await ReadPackageFromStreamAsync(networkStream, token);
-                if (package == default) break;
-                progress?.Report(commonRead += package.Length);
-                package = await DecryptRawBytesAsync(package, ecnryptedSymmetricKey, ecnryptedIV, token);
-                packages.Add(package);
-                commonData += package.Length;
-            }
-
-            int offset = 0;
-            byte[] data = new byte[commonData];
-            foreach (byte[] package in packages)
-            {
-                Buffer.BlockCopy(package, 0, data, offset, package.Length);
-                offset += package.Length;
-            }
-
-            return data;*/
-        }
+        }        
 
         public async Task<BaseIntent> ReceiveIntentAsync(IProgress<long> progress = null, CancellationToken token = default)
         {
             //byte[] rawBytes = await ReceiveStreamAsync(progress, token);
-            using var stream = await ReceiveStreamAsync(progress, token);
+            using MemoryStream stream = new MemoryStream();
+            await ReceiveStreamAsync(stream, progress, token);
             return GetIntentFromBytes(stream.ToArray(), token);
         }
 
@@ -331,6 +294,14 @@ namespace NetworkMessage.Communicator
         public void Dispose()
         {
             client.Close();
+        }
+
+        public async Task<string> ReceiveFile(IProgress<long> progress = null, CancellationToken token = default)
+        {
+            var path = Path.GetTempFileName();
+            using var stream = File.OpenWrite(path);            
+            await ReceiveStreamAsync(stream, progress, token);
+            return path;
         }
     }
 }

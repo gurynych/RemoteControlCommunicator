@@ -26,7 +26,7 @@
         {
             if (string.IsNullOrWhiteSpace(name)) throw new ArgumentNullException(nameof(name));
             if (string.IsNullOrEmpty(fullName)) throw new ArgumentNullException(nameof(fullName));
-            if (fileLength <= 0) throw new ArgumentOutOfRangeException(nameof(fileLength));
+            if (fileLength < 0) throw new ArgumentOutOfRangeException(nameof(fileLength));
             Name = name;
             CreationDate = creationDate;
             ChangingDate = changingDate;

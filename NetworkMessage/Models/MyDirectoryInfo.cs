@@ -19,6 +19,12 @@
         {            
         }
 
+        public MyDirectoryInfo(string name)
+        {
+            if (string.IsNullOrWhiteSpace(name)) throw new ArgumentNullException(nameof(name));
+            Name = name;
+        }
+
         public MyDirectoryInfo(string name, DateTime creationDate, DateTime changingDate, string fullName)
         {
             if (string.IsNullOrWhiteSpace(name)) throw new ArgumentNullException(nameof(name));

@@ -1,4 +1,5 @@
-﻿namespace NetworkMessage.CommandsResults
+﻿
+namespace NetworkMessage.CommandsResults
 {
     public class PublicKeyResult : BaseNetworkCommandResult
     {
@@ -13,6 +14,11 @@
         public override byte[] ToByteArray()
         {
             return PublicKey;
+        }
+
+        public override Stream ToStream()
+        {
+            return new MemoryStream(PublicKey);
         }
     }
 }

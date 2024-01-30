@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace NetworkMessage.CommandsResults
 {
-    internal class DownloadDirectoryResult : BaseNetworkCommandResult
+    public class DownloadDirectoryResult : BaseNetworkCommandResult
     {
         [Newtonsoft.Json.JsonProperty]
         public byte[] File { get; private set; }

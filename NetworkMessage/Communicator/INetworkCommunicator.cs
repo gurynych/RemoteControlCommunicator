@@ -39,7 +39,7 @@ namespace NetworkMessage.Communicator
         /// <returns>Полученные данные в виде массива байт</returns>
         //Task<byte[]> ReceiveBytesAsync(IProgress<long> progress = null, CancellationToken token = default);
 
-        public Task<MemoryStream> ReceiveStreamAsync(IProgress<long> progress = null, CancellationToken token = default);
+        public Task ReceiveStreamAsync(Stream streamToWrite, IProgress<long> progress = null, CancellationToken token = default);
 
         /// <summary>
         /// Получить намерение. Поддерживает ожидание
@@ -61,5 +61,7 @@ namespace NetworkMessage.Communicator
         /// </summary>        
         /// <returns>В случае успешного обмена данными возвращает true, в противном случае - false</returns>
         Task<bool> HandshakeAsync(IProgress<long> progress = null, CancellationToken token = default);
+
+        Task<string> ReceiveFile(IProgress<long> progress = null, CancellationToken token = default);
     }
 }
