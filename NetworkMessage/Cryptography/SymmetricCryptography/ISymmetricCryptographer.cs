@@ -36,11 +36,7 @@ namespace NetworkMessage.Cryptography.SymmetricCryptography
         /// <param name="key">Ключ, при помощи которого будут расшифрованы данные</param>
         /// <param name="IV">Соль, использовавшиеся при шифровании</param>
         /// <returns>Расшифрованные данные</returns>
-        Task<byte[]> DecryptAsync(byte[] encryptedData, byte[] key, byte[] IV, CancellationToken token = default);
-
-        byte[] GenerateKey();
-
-        byte[] GenerateIV();
+        Task<byte[]> DecryptAsync(byte[] encryptedData, byte[] key, byte[] IV, CancellationToken token = default);        
 
         public ICryptoTransform CreateEncryptor(byte[] key, byte[] IV);
 

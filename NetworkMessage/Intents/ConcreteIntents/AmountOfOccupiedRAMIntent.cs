@@ -3,24 +3,18 @@ using NetworkMessage.Commands;
 
 namespace NetworkMessage.Intents
 {
-    internal class Intent : BaseIntent
+    public class AmountOfOccupiedRAMIntent : BaseIntent
     {
-        [Newtonsoft.Json.JsonProperty]
         public override string IntentType { get; protected set; }
 
-        [Newtonsoft.Json.JsonConstructor]
-        private Intent()
-        {            
-        }
-
-        public Intent(string intentType)
+        public AmountOfOccupiedRAMIntent()
         {
-            IntentType = intentType;
-        }
+            IntentType = nameof(AmountOfOccupiedRAMIntent);
+        }        
 
         public override INetworkCommand CreateCommand(ICommandFactory commandFactory)
         {
-            return default;
+            return commandFactory.CreateAmountOfOccupiedRAMCommand();
         }
     }
 }

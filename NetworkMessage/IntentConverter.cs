@@ -3,9 +3,9 @@ using System.Reflection;
 
 namespace NetworkMessage
 {
-    internal class IntentConverter
+    internal static class IntentConverter
     {
-        private static Dictionary<string, Type> intents;
+        private static readonly Dictionary<string, Type> intents;
 
         static IntentConverter()
         {
@@ -16,7 +16,7 @@ namespace NetworkMessage
             intents = namespaceTypes.ToDictionary(type => type.Name, type => type);
         }
 
-        public Type GetType(string intentType) =>
+        public static Type GetType(string intentType) =>
             intents.GetValueOrDefault(intentType);
     }
 }

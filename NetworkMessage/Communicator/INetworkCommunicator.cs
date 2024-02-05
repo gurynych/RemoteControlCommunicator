@@ -27,33 +27,31 @@ namespace NetworkMessage.Communicator
         /// <summary>
         /// Отправить данные по сети. Поддерживает ожидание
         /// </summary>
-        /// <param name="message">Представляет собой данные для отправки</param>
-        /// <param name="progress">Вызывается метод Report для уведомлениче об изменении количества отправленных байт</param>
-        /// <returns></returns>
-        Task SendMessageAsync(INetworkObject message, IProgress<long> progress = null, CancellationToken token = default);
+        /// <param name="netObject">Представляет собой данные для отправки</param>
+        /// <param name="progress">Вызывается метод Report для уведомлениче об изменении общих отправленных байт</param>        
+        Task SendObjectAsync(INetworkObject netObject, IProgress<long> progress = null, CancellationToken token = default);
 
         /// <summary>
         /// Получение сырых данных в сети из определенного формата сообщения. Поддерживает ожидание
         /// </summary>
         /// <param name="progress">Вызывается метод Report для уведомлениче об изменении количества полученных байт</param>        
-        /// <returns>Полученные данные в виде массива байт</returns>
-        //Task<byte[]> ReceiveBytesAsync(IProgress<long> progress = null, CancellationToken token = default);
+        /// <returns>Полученные данные в виде массива байт</returns>        
 
         public Task ReceiveStreamAsync(Stream streamToWrite, IProgress<long> progress = null, CancellationToken token = default);
 
         /// <summary>
         /// Получить намерение. Поддерживает ожидание
         /// </summary>
-        /// <param name="progress">Вызывается метод Report для уведомлениче об изменении количества полученных байт</param>        
+        /// <param name="progress">Вызывается метод Report для уведомлениче об изменении общих полученных байт</param>        
         /// <returns>В случае успещного парса - определенное намерение, приведенное к базовому классу, в противном случае null</returns>
-        Task<BaseIntent> ReceiveIntentAsync(IProgress<long> progress = null, CancellationToken token = default);
+        Task<BaseIntent> ReceiveAsync(IProgress<long> progress = null, CancellationToken token = default);
 
         /// <summary>
         /// Полулучить конкретный объект из сети. Поддерживает ожидание
         /// </summary>       
         /// <param name="progress">Вызывается метод Report для уведомлениче об изменении количества полученных байт</param>
         /// <returns></returns>
-        Task<TNetworkObject> ReceiveNetworkObjectAsync<TNetworkObject>(IProgress<long> progress = null, CancellationToken token = default)
+        Task<TNetworkObject> ReceiveAsync<TNetworkObject>(IProgress<long> progress = null, CancellationToken token = default)
             where TNetworkObject : INetworkObject;
 
         /// <summary>
@@ -61,7 +59,5 @@ namespace NetworkMessage.Communicator
         /// </summary>        
         /// <returns>В случае успешного обмена данными возвращает true, в противном случае - false</returns>
         Task<bool> HandshakeAsync(IProgress<long> progress = null, CancellationToken token = default);
-
-        Task<string> ReceiveFile(IProgress<long> progress = null, CancellationToken token = default);
     }
 }

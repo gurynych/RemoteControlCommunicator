@@ -13,16 +13,16 @@ namespace NetworkMessage.Cryptography.KeyStore
         /// <exception cref="ArgumentNullException"></exception>
         public AsymmetricKeyStoreBase(IAsymmetricCryptographer asymmetricCryptographer)
         {
-            cryptographer = asymmetricCryptographer ?? throw new ArgumentNullException(nameof(asymmetricCryptographer));
+            ArgumentNullException.ThrowIfNull(asymmetricCryptographer, nameof(asymmetricCryptographer));
+            cryptographer = asymmetricCryptographer;
         }
 
         protected abstract byte[] SetPrivateKey();
 
         public virtual byte[] GetPublicKey()
         {
-            byte[] publicK = cryptographer.GeneratePublicKey(PrivateKey);
-            return publicK;
-            //return FromBytesToBase64Bytes(publicK);
+            byte[] pubK = cryptographer.GeneratePublicKey(PrivateKey);
+            return pubK;
         }
 
         protected virtual byte[] FromBytesToBase64Bytes(byte[] bytes)

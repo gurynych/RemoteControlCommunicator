@@ -1,26 +1,25 @@
 ﻿using NetworkMessage.CommandFactory;
 using NetworkMessage.Commands;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 
 namespace NetworkMessage.Intents
 {
-    internal class Intent : BaseIntent
+    public class AmountOfRAMIntent : BaseIntent
     {
-        [Newtonsoft.Json.JsonProperty]
         public override string IntentType { get; protected set; }
 
-        [Newtonsoft.Json.JsonConstructor]
-        private Intent()
-        {            
-        }
-
-        public Intent(string intentType)
+        public AmountOfRAMIntent()
         {
-            IntentType = intentType;
+            IntentType = nameof(AmountOfRAMIntent);
         }
 
         public override INetworkCommand CreateCommand(ICommandFactory commandFactory)
         {
-            return default;
+            return commandFactory.CreateAmountOfRAMCommand();
         }
     }
 }
