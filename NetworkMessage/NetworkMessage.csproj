@@ -4,8 +4,8 @@
 		<TargetFramework>net8.0</TargetFramework>
 		<ImplicitUsings>enable</ImplicitUsings>		
 		<Nullable>disable</Nullable>
-		<Version>1.1.9</Version>
-		<Authors>gurynych</Authors>
+		<Version>1.1.0</Version>
+		<Authors>gurynych, Ksenia-gra</Authors>		
 		<GeneratePackageOnBuild>True</GeneratePackageOnBuild>
 		<Title>NetworkMessage</Title>
 	</PropertyGroup>

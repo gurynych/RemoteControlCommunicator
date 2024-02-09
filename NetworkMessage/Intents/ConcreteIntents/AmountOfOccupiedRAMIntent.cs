@@ -1,7 +1,7 @@
 ﻿using NetworkMessage.CommandFactory;
 using NetworkMessage.Commands;
 
-namespace NetworkMessage.Intents
+namespace NetworkMessage.Intents.ConcreteIntents
 {
     public class AmountOfOccupiedRAMIntent : BaseIntent
     {

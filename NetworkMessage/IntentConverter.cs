@@ -1,4 +1,4 @@
-﻿using NetworkMessage.Intents;
+﻿using NetworkMessage.Intents.ConcreteIntents;
 using System.Reflection;
 
 namespace NetworkMessage
@@ -9,7 +9,7 @@ namespace NetworkMessage
 
         static IntentConverter()
         {
-            string namespaceName = typeof(BaseIntent).Namespace;
+            string namespaceName = typeof(AmountOfRAMIntent).Namespace;
             Assembly assembly = Assembly.GetExecutingAssembly();
             Type[] types = assembly.GetTypes();
             IEnumerable<Type> namespaceTypes = types.Where(type => type.Namespace == namespaceName);

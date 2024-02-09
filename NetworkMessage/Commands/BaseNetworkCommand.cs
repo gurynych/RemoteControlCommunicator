@@ -1,5 +1,6 @@
 ﻿
 using NetworkMessage.CommandsResults;
+using Newtonsoft.Json;
 
 namespace NetworkMessage.Commands
 {
@@ -10,9 +11,14 @@ namespace NetworkMessage.Commands
         {            
         }
 
-        public abstract Task<BaseNetworkCommandResult> ExecuteAsync(CancellationToken token = default, params object[] objects);        
+        public abstract Task<BaseNetworkCommandResult> ExecuteAsync(CancellationToken token = default, params object[] objects);
 
-        public virtual Stream ToStream()
+		public override string ToString()
+		{
+			return JsonConvert.SerializeObject(this);
+		}
+
+		public virtual Stream ToStream()
         {
             return new MemoryStream(System.Text.Encoding.UTF8.GetBytes(ToString()));
         }
