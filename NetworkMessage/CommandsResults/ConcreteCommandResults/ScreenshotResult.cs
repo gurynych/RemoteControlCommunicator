@@ -1,4 +1,5 @@
-﻿namespace NetworkMessage.CommandsResults.ConcreteCommandResults
+﻿
+namespace NetworkMessage.CommandsResults.ConcreteCommandResults
 {
     public class ScreenshotResult : BaseNetworkCommandResult
     {
@@ -20,5 +21,10 @@
             : base(errorMessage, exception)
         {
         }
-    }
+
+		public override Stream ToStream()
+		{
+			return new MemoryStream(Image);
+		}
+	}
 }
