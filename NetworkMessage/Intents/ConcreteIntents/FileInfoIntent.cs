@@ -5,14 +5,11 @@ namespace NetworkMessage.Intents.ConcreteIntents
 {
     public class FileInfoIntent : BaseIntent
     {
-        public string Path { get; }
+        public string Path { get; }        
 
-        public override string IntentType { get; protected set; }
-
-        public FileInfoIntent(string path)
+        public FileInfoIntent(string path) : base()
         {
-            Path = path;
-            IntentType = nameof(FileInfoIntent);
+            Path = path;            
         }
 
         public override INetworkCommand CreateCommand(ICommandFactory commandFactory)

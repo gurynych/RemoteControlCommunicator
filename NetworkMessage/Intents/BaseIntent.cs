@@ -6,7 +6,12 @@ namespace NetworkMessage.Intents
 {
     public abstract class BaseIntent : IIntent
     {
-        public abstract string IntentType { get; protected set; }        
+        public virtual string IntentType { get; protected set; }
+
+        public BaseIntent()
+        {
+			IntentType = GetType().Name;
+		}
 
         public abstract INetworkCommand CreateCommand(ICommandFactory commandFactory);
 

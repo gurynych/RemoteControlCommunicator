@@ -10,14 +10,11 @@ namespace NetworkMessage.Intents.ConcreteIntents
 {
     public class DownloadDirectoryIntent : BaseIntent
     {
-        public string Path { get; }
+        public string Path { get; }        
 
-        public override string IntentType { get; protected set; }
-
-        public DownloadDirectoryIntent(string path)
+        public DownloadDirectoryIntent(string path) : base()
         {
-            Path = path;
-            IntentType = nameof(DownloadDirectoryIntent);
+            Path = path;            
         }
 
         public override INetworkCommand CreateCommand(ICommandFactory commandFactory)

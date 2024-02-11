@@ -11,13 +11,10 @@ namespace NetworkMessage.Intents.ConcreteIntents
     internal class DirectoryInfoIntent : BaseIntent
     {
         public string Path { get; }
-
-        public override string IntentType { get; protected set; }
-
-        public DirectoryInfoIntent(string path)
+        
+        public DirectoryInfoIntent(string path) : base()
         {
             Path = path;
-            IntentType = nameof(DirectoryInfoIntent);
         }
 
         public override INetworkCommand CreateCommand(ICommandFactory commandFactory)

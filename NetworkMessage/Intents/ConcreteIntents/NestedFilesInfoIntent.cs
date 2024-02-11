@@ -5,14 +5,11 @@ namespace NetworkMessage.Intents.ConcreteIntents
 {
     public class NestedFilesInfoIntent : BaseIntent
     {
-        public string Path { get; }
+        public string Path { get; }        
 
-        public override string IntentType { get; protected set; }
-
-        public NestedFilesInfoIntent(string path)
+        public NestedFilesInfoIntent(string path) : base()
         {
             Path = path;
-            IntentType = nameof(NestedFilesInfoIntent);
         }
 
         public override INetworkCommand CreateCommand(ICommandFactory commandFactory)
