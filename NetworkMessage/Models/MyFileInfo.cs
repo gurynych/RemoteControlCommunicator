@@ -12,11 +12,9 @@
         public DateTime ChangingDate { get; private set; }
 
         [Newtonsoft.Json.JsonProperty]
-        public long Size { get; private set; }
-
-        [Newtonsoft.Json.JsonProperty]
         public string FullName { get; protected set; }
 
+        [Newtonsoft.Json.JsonProperty]
         public long FileLength { get; private set; }
 
         [Newtonsoft.Json.JsonConstructor]
@@ -32,7 +30,7 @@
 			Name = name;
             CreationDate = creationDate;
             ChangingDate = changingDate;
-            Size = fileLength;
+            FileLength = fileLength;
             FullName = fullName;
         }
     }
