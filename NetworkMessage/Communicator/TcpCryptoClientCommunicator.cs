@@ -211,7 +211,7 @@ namespace NetworkMessage.Communicator
         /// </summary>
         /// <param name="externalPublicKey">Внешний ключ</param>
         /// <exception cref="ArgumentNullException"></exception>
-        protected void SetExternalPublicKey(byte[] externalPublicKey)
+        public void SetExternalPublicKey(byte[] externalPublicKey)
         {
             this.externalPublicKey = externalPublicKey ?? throw new ArgumentNullException(nameof(externalPublicKey));
         }
