@@ -2,23 +2,23 @@
 
 namespace NetworkMessage.CommandsResults.ConcreteCommandResults
 {
-    public class DeviceGuidResult : BaseNetworkCommandResult
+    public class GuidResult : BaseNetworkCommandResult
     {
         [Newtonsoft.Json.JsonProperty]
         public string Guid { get; private set; }
 
         [Newtonsoft.Json.JsonConstructor]
-        private DeviceGuidResult()
+        private GuidResult()
         {
         }
 
-        public DeviceGuidResult(string guid)
+        public GuidResult(string guid)
         {
             if (string.IsNullOrEmpty(guid)) throw new ArgumentNullException(nameof(guid));
             Guid = guid;
         }
 
-        public DeviceGuidResult(string errorMessage, Exception exception = null)
+        public GuidResult(string errorMessage, Exception exception = null)
             : base(errorMessage, exception)
         {
         }

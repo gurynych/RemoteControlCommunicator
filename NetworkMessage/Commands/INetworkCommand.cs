@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace NetworkMessage.Commands
 {
-    public interface INetworkCommand : INetworkObject
+    public interface INetworkCommand
     {
         Task<BaseNetworkCommandResult> ExecuteAsync(CancellationToken token = default, params object[] objects);
     }

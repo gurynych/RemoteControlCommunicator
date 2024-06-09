@@ -30,6 +30,7 @@ namespace NetworkMessage.CommandsResults.ConcreteCommandResults
 
         public override Stream ToStream()
         {
+            //TODO Делать свои классы стримов и переопределять Dispose, после отправки уничтожать. В это случае удалять файл
             FileStream fs = File.Create(System.IO.Path.GetTempFileName());
             ZipFile.CreateFromDirectory(Path, fs, CompressionLevel.Fastest, true);
             return fs;

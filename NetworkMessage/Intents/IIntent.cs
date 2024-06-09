@@ -7,6 +7,11 @@ namespace NetworkMessage.Intents
     {
         string IntentType { get; }
 
+        /// <summary>
+        /// Создание команды, используя абстрактную фабрику
+        /// </summary>
+        /// <param name="commandFactory"></param>
+        /// <returns></returns>
         INetworkCommand CreateCommand(ICommandFactory commandFactory);
     }
 }

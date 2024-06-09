@@ -6,7 +6,7 @@ namespace NetworkMessage.Cryptography.AsymmetricCryptography
 {
     /// <summary>
     /// Предоставляет реализацию асимметричной криптографии, используя алгоритм RSA.
-    /// Длинна ключей 2048 бит
+    /// Длинна ключа 2048 бит
     /// </summary>
     public class RSACryptographer : IAsymmetricCryptographer
     {

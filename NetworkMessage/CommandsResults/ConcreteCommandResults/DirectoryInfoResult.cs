@@ -1,16 +1,18 @@
-﻿namespace NetworkMessage.CommandsResults.ConcreteCommandResults
+﻿using NetworkMessage.DTO;
+
+namespace NetworkMessage.CommandsResults.ConcreteCommandResults
 {
     public class DirectoryInfoResult : BaseNetworkCommandResult
     {
         [Newtonsoft.Json.JsonProperty]
-        public Models.MyDirectoryInfo DirectoryInfo { get; private set; }
+        public FileInfoDTO DirectoryInfo { get; private set; }
 
         [Newtonsoft.Json.JsonConstructor]
         private DirectoryInfoResult()
         {
         }
 
-        public DirectoryInfoResult(Models.MyDirectoryInfo directoryInfo)
+        public DirectoryInfoResult(FileInfoDTO directoryInfo)
         {
             DirectoryInfo = directoryInfo ?? throw new ArgumentNullException(nameof(directoryInfo));
         }
