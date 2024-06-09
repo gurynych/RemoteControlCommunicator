@@ -1,6 +1,4 @@
-﻿using Newtonsoft.Json;
-
-namespace NetworkMessage.CommandsResults
+﻿namespace NetworkMessage.CommandsResults
 {
     public abstract class BaseNetworkCommandResult : INetworkCommandResult
     {
@@ -23,7 +21,7 @@ namespace NetworkMessage.CommandsResults
 
 		public override string ToString()
 		{
-			return JsonConvert.SerializeObject(this);
+			return Newtonsoft.Json.JsonConvert.SerializeObject(this);
 		}
 
 		public virtual Stream ToStream()

@@ -1,4 +1,4 @@
-﻿namespace NetworkMessage.Models
+﻿namespace NetworkMessage.DTO
 {
     public readonly struct ConfigurationData
     {

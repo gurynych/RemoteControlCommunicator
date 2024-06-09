@@ -10,7 +10,7 @@ namespace NetworkMessage.Cryptography.SymmetricCryptography
     /// <summary>
     /// Предоставляет методы для реализации симметричного шифрования
     /// </summary>
-    public interface ISymmetricCryptographer
+    public interface ISymmetricCryptographer 
     {
         public byte[] Key { get; }
 

@@ -3,14 +3,14 @@
     public class NestedFilesInfoResult : BaseNetworkCommandResult
     {
         [Newtonsoft.Json.JsonProperty]
-        public IEnumerable<Models.MyFileInfo> NestedFilesInfo { get; private set; }
+        public IEnumerable<DTO.FileInfoDTO> NestedFilesInfo { get; private set; }
 
         [Newtonsoft.Json.JsonConstructor]
         private NestedFilesInfoResult()
         {
         }
 
-        public NestedFilesInfoResult(IEnumerable<Models.MyFileInfo> nestedFilesInfo)
+        public NestedFilesInfoResult(IEnumerable<DTO.FileInfoDTO> nestedFilesInfo)
         {
             NestedFilesInfo = nestedFilesInfo ?? throw new ArgumentNullException(nameof(nestedFilesInfo));
         }

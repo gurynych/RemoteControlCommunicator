@@ -1,7 +1,7 @@
 ﻿using NetworkMessage.Intents.ConcreteIntents;
 using System.Reflection;
 
-namespace NetworkMessage
+namespace NetworkMessage.Intents
 {
     internal static class IntentConverter
     {

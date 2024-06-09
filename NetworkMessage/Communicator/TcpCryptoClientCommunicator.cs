@@ -3,19 +3,21 @@ using NetworkMessage.Cryptography.KeyStore;
 using NetworkMessage.Cryptography.SymmetricCryptography;
 using NetworkMessage.Exceptions;
 using NetworkMessage.Intents;
-using NetworkMessage.Models;
+using NetworkMessage.DTO;
 using Newtonsoft.Json;
 using System.Net.Sockets;
 using System.Security.Cryptography;
 using System.Text;
+using NetworkMessage.CommandsResults.ConcreteCommandResults;
+using NetworkMessage.Intents.ConcreteIntents;
 
 namespace NetworkMessage.Communicator
 {
     public abstract class TcpCryptoClientCommunicator : INetworkCommunicator
     {
-        private const int BufferSize = 1024 * 16;
+        private const int BufferSize = 1024 * 1024;
         private bool isConnected;
-        protected readonly TcpClient client;
+        protected TcpClient client;
         protected readonly IAsymmetricCryptographer asymmetricCryptographer;
         protected readonly ISymmetricCryptographer symmetricCryptographer;
         protected readonly AsymmetricKeyStoreBase keyStore;
@@ -51,10 +53,20 @@ namespace NetworkMessage.Communicator
 
         public async Task<bool> ReconnectWithHandshakeAsync(string serverIP, int serverPort, IProgress<long> progress = null, CancellationToken token = default)
         {
+            client.Close();
+            client = new TcpClient();
             IsConnected = await ConnectAsync(serverIP, serverPort, token).ConfigureAwait(false);
             if (IsConnected)
             {
-                IsConnected = await HandshakeAsync(progress, token).ConfigureAwait(false);
+                try
+                {
+                    await HandshakeAsync(progress, token).ConfigureAwait(false);
+                    IsConnected = true;
+                }
+                catch
+                {
+                    IsConnected = false;
+                }
             }
 
             return IsConnected;
@@ -86,6 +98,7 @@ namespace NetworkMessage.Communicator
             if (!client.Connected) throw new DeviceNotConnectedException();
 
             streamToSend.Position = 0;
+            long streamLength = streamToSend.Length;
             NetworkStream networkStream = client.GetStream();
             BufferedStream bufferedStream = new BufferedStream(networkStream);
             byte[] cryptoKey = asymmetricCryptographer.Encrypt(symmetricCryptographer.Key, externalPublicKey);
@@ -97,7 +110,7 @@ namespace NetworkMessage.Communicator
             await networkStream.WriteAsync(cryptoKey, token).ConfigureAwait(false);
             await networkStream.WriteAsync(sizeIV, token).ConfigureAwait(false);
             await networkStream.WriteAsync(cryptoIV, token).ConfigureAwait(false);
-            await networkStream.WriteAsync(BitConverter.GetBytes(streamToSend.Length), token).ConfigureAwait(false);
+            await networkStream.WriteAsync(BitConverter.GetBytes(streamLength), token).ConfigureAwait(false);
 
             using (CryptoStream cryptoStream =
                 new CryptoStream(networkStream,
@@ -110,12 +123,12 @@ namespace NetworkMessage.Communicator
                 byte[] buffer = new byte[BufferSize];
                 do
                 {
-                    sizeToSend = Math.Min(BufferSize, streamToSend.Length - commonSend);
+                    sizeToSend = Math.Min(BufferSize, streamLength - commonSend);
                     await streamToSend.ReadExactlyAsync(buffer.AsMemory(0, (int)sizeToSend), token).ConfigureAwait(false);
                     await cryptoStream.WriteAsync(buffer.AsMemory(0, (int)sizeToSend), token).ConfigureAwait(false);
                     commonSend += sizeToSend;
                     progress?.Report(commonSend);
-                } while (sizeToSend > 0 && commonSend < streamToSend.Length);
+                } while (sizeToSend > 0 && commonSend < streamLength);
             }
 
             await bufferedStream.FlushAsync(token);
@@ -198,12 +211,36 @@ namespace NetworkMessage.Communicator
         /// </summary>
         /// <param name="externalPublicKey">Внешний ключ</param>
         /// <exception cref="ArgumentNullException"></exception>
-        public void SetExternalPublicKey(byte[] externalPublicKey)
+        protected void SetExternalPublicKey(byte[] externalPublicKey)
         {
             this.externalPublicKey = externalPublicKey ?? throw new ArgumentNullException(nameof(externalPublicKey));
         }
 
         public abstract Task<bool> HandshakeAsync(IProgress<long> progress = null, CancellationToken token = default);
+        
+        /// <summary>
+        /// Рукопожатие
+        /// </summary>
+        /// <param name="progress"></param>
+        /// <param name="token"></param>
+        /// <returns>Guid подключенного устройства</returns>
+        /// <exception cref="NullReferenceException"></exception>
+        public virtual async Task<GuidResult> HandshakeAsync1(IProgress<long> progress = null, CancellationToken token = default)
+        {
+            byte[] publicKey;
+            using (MemoryStream ms = new MemoryStream())
+            {
+                await ReceiveStreamAsync(ms, progress, token).ConfigureAwait(false);
+                publicKey = ms.ToArray();
+            }
+
+            if (publicKey == default || publicKey.Length == 0) throw new NullReferenceException(nameof(publicKey));
+
+            SetExternalPublicKey(publicKey);
+            BaseIntent guidIntent = new GuidIntent();            
+            await SendObjectAsync(guidIntent, progress, token).ConfigureAwait(false);
+            return await ReceiveAsync<GuidResult>(progress, token).ConfigureAwait(false);
+        }
 
         private BaseIntent GetIntentFromBytes(byte[] data, CancellationToken token = default)
         {

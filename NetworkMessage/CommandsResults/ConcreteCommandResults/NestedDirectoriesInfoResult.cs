@@ -1,16 +1,18 @@
-﻿namespace NetworkMessage.CommandsResults.ConcreteCommandResults
+﻿using NetworkMessage.DTO;
+
+namespace NetworkMessage.CommandsResults.ConcreteCommandResults
 {
     public class NestedDirectoriesInfoResult : BaseNetworkCommandResult
     {
         [Newtonsoft.Json.JsonProperty]
-        public IEnumerable<Models.MyDirectoryInfo> NestedDirectoriesInfo { get; private set; }
+        public IEnumerable<FileInfoDTO> NestedDirectoriesInfo { get; private set; }
 
         [Newtonsoft.Json.JsonConstructor]
         private NestedDirectoriesInfoResult()
         {
         }
 
-        public NestedDirectoriesInfoResult(IEnumerable<Models.MyDirectoryInfo> nestedDirectoriesInfo)
+        public NestedDirectoriesInfoResult(IEnumerable<FileInfoDTO> nestedDirectoriesInfo)
         {
             NestedDirectoriesInfo = nestedDirectoriesInfo ?? throw new ArgumentNullException(nameof(nestedDirectoriesInfo));
         }

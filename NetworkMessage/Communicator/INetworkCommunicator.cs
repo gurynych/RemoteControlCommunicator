@@ -1,4 +1,5 @@
 ﻿using NetworkMessage.CommandsResults;
+using NetworkMessage.CommandsResults.ConcreteCommandResults;
 using NetworkMessage.Intents;
 
 namespace NetworkMessage.Communicator
@@ -47,7 +48,7 @@ namespace NetworkMessage.Communicator
         Task<BaseIntent> ReceiveAsync(IProgress<long> progress = null, CancellationToken token = default);
 
         /// <summary>
-        /// Полулучить конкретный объект из сети. Поддерживает ожидание
+        /// Получить конкретный объект из сети. Поддерживает ожидание
         /// </summary>       
         /// <param name="progress">Вызывается метод Report для уведомлениче об изменении количества полученных байт</param>
         /// <returns></returns>

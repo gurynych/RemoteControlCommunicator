@@ -3,14 +3,14 @@
     public class FileInfoResult : BaseNetworkCommandResult
     {
         [Newtonsoft.Json.JsonProperty]
-        public Models.MyFileInfo FileInfo { get; private set; }
+        public DTO.FileInfoDTO FileInfo { get; private set; }
 
         [Newtonsoft.Json.JsonConstructor]
         private FileInfoResult()
         {
         }
 
-        public FileInfoResult(Models.MyFileInfo fileInfo)
+        public FileInfoResult(DTO.FileInfoDTO fileInfo)
         {
             FileInfo = fileInfo ?? throw new ArgumentNullException(nameof(fileInfo));
         }
